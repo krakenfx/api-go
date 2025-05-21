@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ "$1" == "uat" ]; then
+    export KRAKEN_API_SPOT_REST_URL="https://api.vip.uat.lobster.kraken.com"
+    export KRAKEN_API_SPOT_WS_URL="wss://ws.vip.uat.lobster.kraken.com/v2"
+    export KRAKEN_API_SPOT_WS_AUTH_URL="wss://ws-auth.vip.uat.lobster.kraken.com/v2"
+    export KRAKEN_API_SPOT_PUBLIC=""
+    export KRAKEN_API_SPOT_SECRET=""
+elif [ "$1" == "demo" ]; then
+    export KRAKEN_API_FUTURES_REST_URL="https://demo-futures.kraken.com"
+    export KRAKEN_API_FUTURES_WS_URL="wss://demo-futures.kraken.com/ws/v1"
+    export KRAKEN_API_FUTURES_PUBLIC=""
+    export KRAKEN_API_FUTURES_SECRET=""
+elif [ "$1" == "prod" ]; then
+    export KRAKEN_API_SPOT_REST_URL="https://api.kraken.com"
+    export KRAKEN_API_SPOT_WS_URL="wss://ws.kraken.com/v2"
+    export KRAKEN_API_SPOT_WS_AUTH_URL="wss://ws-auth.kraken.com/v2"
+    export KRAKEN_API_SPOT_PUBLIC=""
+    export KRAKEN_API_SPOT_SECRET=""
+
+    export KRAKEN_API_FUTURES_REST_URL="https://futures.kraken.com"
+    export KRAKEN_API_FUTURES_WS_URL="wss://futures.kraken.com/ws/v1"
+    export KRAKEN_API_FUTURES_PUBLIC=""
+    export KRAKEN_API_FUTURES_SECRET=""
+else
+    echo "unknown environment: $1"
+    exit 1
+fi
+
+go run $2

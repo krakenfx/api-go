@@ -10,7 +10,7 @@ import (
 func main() {
 	client := spot.NewREST()
 	client.BaseURL = os.Getenv("KRAKEN_API_SPOT_REST_URL")
-	client.PublicKey = os.Getenv("KRAKEN_API_SPOT_PUBLIC") + "A"
+	client.PublicKey = os.Getenv("KRAKEN_API_SPOT_PUBLIC")
 	client.PrivateKey = os.Getenv("KRAKEN_API_SPOT_SECRET")
 	fmt.Printf("> Fetching spot balances.\n")
 	balances, err := client.Balances()

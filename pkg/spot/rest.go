@@ -3,16 +3,12 @@ package spot
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
 
 	"github.com/krakenfx/api-go/pkg/kraken"
 )
 
 // REST wraps [RESTBase] with functions to call common endpoints.
 type REST struct {
-	Aliases    map[string]*AssetName
-	AliasesMux sync.RWMutex
-
 	// CreateUser creates a new user account in the Kraken system.
 	//
 	// https://docs.kraken.com/api/docs/embed-api/create-embed-user

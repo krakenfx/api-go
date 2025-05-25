@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// Default decimal places set for integer constructors.
 const DefaultDecimals = 12
 
 // Money implements fixed-point arithmetic.

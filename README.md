@@ -17,7 +17,7 @@ Key features include:
 
 * Retrieval of instruments and assets
 
-* Utility functions for asset name normalization and price derivation.
+* Utility functions for asset name normalization and price derivation
 
 ## 🚀 Installation
 
@@ -36,7 +36,7 @@ go mod download
 
 ## 📂 Examples & Scripts
 
-Example packages using the module are located in the [examples](examples/) directory
+Example packages using the module are located in the [examples](examples/) directory.
 
 ### 🌐 Environment Configuration
 

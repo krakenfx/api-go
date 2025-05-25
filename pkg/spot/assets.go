@@ -90,7 +90,7 @@ type AssetsManagerUpdate struct {
 }
 
 // Update creates an alias map out of the old and new [AssetInfo] map.
-func (n *AssetManager) Update(update *AssetsManagerUpdate) {
+func (m *AssetManager) Update(update *AssetsManagerUpdate) {
 	aliases := make(map[string]*AssetName)
 	info := make(map[*AssetName]AssetInfo)
 	pairs := make(map[*AssetName]map[*AssetName]AssetPair)
@@ -155,25 +155,25 @@ func (n *AssetManager) Update(update *AssetsManagerUpdate) {
 		}
 		quoteName.OldName = pair.Quote
 	}
-	n.mux.Lock()
-	defer n.mux.Unlock()
-	n.aliases = aliases
-	n.assets = info
-	n.pairs = pairs
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	m.aliases = aliases
+	m.assets = info
+	m.pairs = pairs
 }
 
 // Map returns a group of [AssetInfo] structs mapped to their [AssetName].
-func (n *AssetManager) Map() map[*AssetName]AssetInfo {
-	n.mux.RLock()
-	defer n.mux.RUnlock()
-	return maps.Clone(n.assets)
+func (m *AssetManager) Map() map[*AssetName]AssetInfo {
+	m.mux.RLock()
+	defer m.mux.RUnlock()
+	return maps.Clone(m.assets)
 }
 
 // AssetName returns the matching [AssetName]. If not found, returns false.
-func (n *AssetManager) AssetName(name string) (*AssetName, bool) {
-	n.mux.RLock()
-	defer n.mux.RUnlock()
-	assetName, ok := n.aliases[strings.ToUpper(name)]
+func (m *AssetManager) AssetName(name string) (*AssetName, bool) {
+	m.mux.RLock()
+	defer m.mux.RUnlock()
+	assetName, ok := m.aliases[strings.ToUpper(name)]
 	if !ok {
 		return nil, false
 	}
@@ -181,23 +181,23 @@ func (n *AssetManager) AssetName(name string) (*AssetName, bool) {
 }
 
 // PairName returns the two [AssetName] structures corresponding to the name. If not found, returns false.
-func (n *AssetManager) PairName(name string) (*AssetName, *AssetName, bool) {
+func (m *AssetManager) PairName(name string) (*AssetName, *AssetName, bool) {
 	base, quote, found := strings.Cut(name, "/")
 	if found {
-		baseName, found := n.AssetName(base)
+		baseName, found := m.AssetName(base)
 		if !found {
 			return nil, nil, false
 		}
-		quoteName, found := n.AssetName(quote)
+		quoteName, found := m.AssetName(quote)
 		if !found {
 			return nil, nil, false
 		}
 		return baseName, quoteName, true
 	} else {
-		n.mux.RLock()
-		defer n.mux.RUnlock()
-		for baseAlias, baseName := range n.aliases {
-			for quoteAlias, quoteName := range n.aliases {
+		m.mux.RLock()
+		defer m.mux.RUnlock()
+		for baseAlias, baseName := range m.aliases {
+			for quoteAlias, quoteName := range m.aliases {
 				if strings.EqualFold(name, baseAlias+quoteAlias) {
 					return baseName, quoteName, true
 				}
@@ -208,10 +208,10 @@ func (n *AssetManager) PairName(name string) (*AssetName, *AssetName, bool) {
 }
 
 // Name returns the standard asset or pair name.
-func (n *AssetManager) Name(name string) string {
-	if asset, found := n.AssetName(name); found {
+func (m *AssetManager) Name(name string) string {
+	if asset, found := m.AssetName(name); found {
 		return asset.Name
-	} else if base, quote, found := n.PairName(name); found {
+	} else if base, quote, found := m.PairName(name); found {
 		return base.Name + "/" + quote.Name
 	} else {
 		return strings.ToUpper(name)
@@ -219,14 +219,14 @@ func (n *AssetManager) Name(name string) string {
 }
 
 // AssetInfo returns the [AssetInfo] struct corresponding to the name.
-func (n *AssetManager) AssetInfo(name string) (*AssetInfo, error) {
-	asset, found := n.AssetName(name)
+func (m *AssetManager) AssetInfo(name string) (*AssetInfo, error) {
+	asset, found := m.AssetName(name)
 	if !found {
 		return nil, fmt.Errorf("not found")
 	}
-	n.mux.RLock()
-	defer n.mux.RUnlock()
-	info := n.assets[asset]
+	m.mux.RLock()
+	defer m.mux.RUnlock()
+	info := m.assets[asset]
 	return &info, nil
 }
 
@@ -250,8 +250,8 @@ func (m *AssetManager) PairInfo(symbol string) (*AssetPair, error) {
 }
 
 // FormatDecimals sets the decimals by the decimal property of the symbol.
-func (n *AssetManager) FormatDecimals(symbol string, v *kraken.Money) (*kraken.Money, error) {
-	info, err := n.AssetInfo(symbol)
+func (m *AssetManager) FormatDecimals(symbol string, v *kraken.Money) (*kraken.Money, error) {
+	info, err := m.AssetInfo(symbol)
 	if err != nil {
 		return nil, err
 	}
@@ -259,8 +259,8 @@ func (n *AssetManager) FormatDecimals(symbol string, v *kraken.Money) (*kraken.M
 }
 
 // FormatDisplayDecimals sets the decimals by the display decimals property of the symbol.
-func (n *AssetManager) FormatDisplayDecimals(symbol string, v *kraken.Money) (*kraken.Money, error) {
-	info, err := n.AssetInfo(symbol)
+func (m *AssetManager) FormatDisplayDecimals(symbol string, v *kraken.Money) (*kraken.Money, error) {
+	info, err := m.AssetInfo(symbol)
 	if err != nil {
 		return nil, err
 	}

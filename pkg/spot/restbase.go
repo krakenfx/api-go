@@ -99,7 +99,9 @@ func (b *RESTBase) NewRequest(opts *RequestOptions) (*kraken.Request, error) {
 		if err != nil {
 			return request, fmt.Errorf("get body: %s", err)
 		}
-		defer bodyReader.Close()
+		defer func() {
+			_ = bodyReader.Close()
+		}()
 		signature, err := Sign(b.PrivateKey, request.URL.RequestURI(), fmt.Sprint(nonce), bodyReader)
 		if err != nil {
 			return request, fmt.Errorf("sign: %s", err)
@@ -137,7 +139,9 @@ func Sign(privateKey string, path string, nonce string, body io.ReadCloser) (str
 	sha256Hash := sha256.New()
 	sha256Hash.Write([]byte((nonce)))
 	if body != nil {
-		io.Copy(sha256Hash, body)
+		if _, err := io.Copy(sha256Hash, body); err != nil {
+			return "", fmt.Errorf("copy body to hash: %w", err)
+		}
 	}
 	message := path + string(sha256Hash.Sum(nil))
 	return kraken.Sign(privateKey, []byte(message))

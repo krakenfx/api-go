@@ -115,9 +115,10 @@ func (b *Book) Update(input *BookUpdateOptions) {
 }
 
 func (b *Book) update(opts *BookUpdateOptions) {
-	if opts.Direction == Ask {
+	switch opts.Direction {
+	case Ask:
 		b.Asks.Update(opts)
-	} else if opts.Direction == Bid {
+	case Bid:
 		b.Bids.Update(opts)
 	}
 	if b.NoBookCrossing {

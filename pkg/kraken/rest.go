@@ -46,9 +46,13 @@ func (r *REST) NewRequest(opts *NewRequestOptions) (*Request, error) {
 	request.Method = opts.Method
 	switch path := opts.Path.(type) {
 	case []any:
-		request.SetURL(r.BaseURL, path...)
+		if err := request.SetURL(r.BaseURL, path...); err != nil {
+			return nil, fmt.Errorf("set url: %w", err)
+		}
 	default:
-		request.SetURL(r.BaseURL, fmt.Sprint(path))
+		if err := request.SetURL(r.BaseURL, fmt.Sprint(path)); err != nil {
+			return nil, fmt.Errorf("set url: %w", err)
+		}
 	}
 	request.SetQuery(opts.Query)
 	request.SetHeader("Content-Type", r.DefaultContentType)
@@ -68,7 +72,9 @@ func (r *REST) Do(req *Request) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func() {
+		_ = response.Body.Close()
+	}()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("io read all failed: %s", err)
@@ -202,19 +208,25 @@ func AddFormField(writer *multipart.Writer, parent string, child string, v any) 
 	}
 	switch assertedValue := v.(type) {
 	case string:
-		writer.WriteField(key, assertedValue)
+		if err := writer.WriteField(key, assertedValue); err != nil {
+			return fmt.Errorf("write field %s: %w", key, err)
+		}
 	case []byte:
 		subwriter, err := writer.CreateFormField(key)
 		if err != nil {
 			return fmt.Errorf("create form field %s: %w", key, err)
 		}
-		subwriter.Write(assertedValue)
+		if _, err := subwriter.Write(assertedValue); err != nil {
+			return fmt.Errorf("write form field: %s: %w", key, err)
+		}
 	case func() (MultipartFile, error):
 		f, err := assertedValue()
 		if err != nil {
 			return fmt.Errorf("open form file: %s", err)
 		}
-		defer f.Close()
+		defer func() {
+			_ = f.Close()
+		}()
 		filename := filepath.Base(f.Name())
 		subwriter, err := writer.CreateFormFile(key, filename)
 		if err != nil {
@@ -321,7 +333,7 @@ func (r *Request) SetBody(v any) error {
 	r.Body = body
 	r.ContentLength = int64(len(r.Body))
 	r.Request.Body = CreateReadCloser(r.Body)
-	r.Request.GetBody = func() (io.ReadCloser, error) { return CreateReadCloser(r.Body), nil }
+	r.GetBody = func() (io.ReadCloser, error) { return CreateReadCloser(r.Body), nil }
 	return nil
 }
 

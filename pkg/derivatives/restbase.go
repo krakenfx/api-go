@@ -97,7 +97,7 @@ func (b *RESTBase) Issue(opts *RequestOptions) (*kraken.Response, error) {
 	if errs, traverseErr := kraken.Traverse[[]any](responseMap, "errors"); traverseErr == nil {
 		var err error
 		for _, errorEntry := range *errs {
-			errors.Join(err, fmt.Errorf("%v", errorEntry))
+			err = errors.Join(err, fmt.Errorf("%v", errorEntry))
 		}
 		return response, err
 	}
@@ -111,7 +111,9 @@ func (b *RESTBase) Issue(opts *RequestOptions) (*kraken.Response, error) {
 // Returns the base64-encoded result.
 func Sign(privateKey string, data io.Reader, nonce string, endpointPath string) (string, error) {
 	sha256Hash := sha256.New()
-	io.Copy(sha256Hash, data)
+	if _, err := io.Copy(sha256Hash, data); err != nil {
+		return "", fmt.Errorf("copy data to hash: %w", err)
+	}
 	sha256Hash.Write([]byte(nonce + strings.TrimPrefix(endpointPath, "/derivatives")))
 	return kraken.Sign(privateKey, sha256Hash.Sum(nil))
 }

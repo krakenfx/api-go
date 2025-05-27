@@ -28,13 +28,14 @@ func (c *EpochCounter) Get() string {
 	defer c.counterMux.Unlock()
 	currentTime := time.Now()
 	var currentUnix int64
-	if c.Granularity == time.Millisecond {
+	switch c.Granularity {
+	case time.Millisecond:
 		currentUnix = currentTime.UnixMilli()
-	} else if c.Granularity == time.Microsecond {
+	case time.Microsecond:
 		currentUnix = currentTime.UnixMicro()
-	} else if c.Granularity == time.Nanosecond {
+	case time.Nanosecond:
 		currentUnix = currentTime.UnixNano()
-	} else {
+	default:
 		c.Granularity = time.Second
 		currentUnix = currentTime.Unix()
 	}

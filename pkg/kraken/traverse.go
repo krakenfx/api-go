@@ -15,7 +15,7 @@ func Traverse[V any](m any, keys ...any) (*V, error) {
 		}
 		return nil, fmt.Errorf("no key provided")
 	}
-	var cursor any = m
+	cursor := m
 	for _, key := range keys {
 		switch c := cursor.(type) {
 		case map[any]any:

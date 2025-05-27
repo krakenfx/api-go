@@ -132,7 +132,7 @@ func (ws *WebSocket) read() {
 	for {
 		_, data, err := ws.conn.ReadMessage()
 		if err != nil {
-			ws.conn.Close()
+			_ = ws.conn.Close()
 			ws.OnDisconnected.Call(err)
 			return
 		}
@@ -145,7 +145,9 @@ func (ws *WebSocket) Disconnect() error {
 	ws.DoReconnect = false
 	done := make(chan bool)
 	defer close(done)
-	defer ws.conn.Close()
+	defer func() {
+		_ = ws.conn.Close()
+	}()
 	callback := ws.OnDisconnected.Recurring(func(e *Event[error]) {
 		done <- true
 	})

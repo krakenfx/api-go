@@ -1,0 +1,54 @@
+name: Email Address Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  check-emails:
+    name: Check Commit Emails
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
+
+      - name: Check commit emails
+        run: |
+          # Get all commits in the current branch that aren't in the base branch
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            COMMITS=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          else
+            # For push events, check the pushed commits
+            COMMITS=$(git rev-list ${{ github.event.before }}..${{ github.event.after }})
+          fi
+
+          # Initialize error flag
+          ERROR=0
+
+          # Check each commit
+          for commit in $COMMITS; do
+            # Get author and committer emails
+            AUTHOR_EMAIL=$(git log -1 --format='%ae' $commit)
+            COMMITTER_EMAIL=$(git log -1 --format='%ce' $commit)
+            COMMIT_SHA=$(git rev-parse --short $commit)
+            
+            if [[ "$AUTHOR_EMAIL" == *"@kraken.com" ]]; then
+              echo "❌ Error: Commit $COMMIT_SHA has author email ($AUTHOR_EMAIL) from @kraken.com domain"
+              ERROR=1
+            fi
+            
+            if [[ "$COMMITTER_EMAIL" == *"@kraken.com" ]]; then
+              echo "❌ Error: Commit $COMMIT_SHA has committer email ($COMMITTER_EMAIL) from @kraken.com domain"
+              ERROR=1
+            fi
+          done
+
+          if [ $ERROR -eq 1 ]; then
+            echo "::error::Found commits with @kraken.com email addresses. Please use a different email address."
+            exit 1
+          else
+            echo "✅ No @kraken.com email addresses found in commits."
+          fi 

@@ -490,6 +490,7 @@ func NewREST() *REST {
 	})
 	rest.GetWebSocketsToken = NewAPIFunctionWithNoParams[GetWebSocketsTokenResult](&APIFunctionOptions{
 		REST:   rest,
+		Auth:   true,
 		Method: "POST",
 		Path:   "/0/private/GetWebSocketsToken",
 	})

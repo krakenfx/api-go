@@ -104,6 +104,7 @@ type BookUpdateOptions struct {
 	Price     *Money        `json:"price,omitempty"`
 	Quantity  *Money        `json:"quantity,omitempty"`
 	Timestamp time.Time     `json:"timestamp,omitempty"`
+	Silent    bool          `json:"silent,omitempty"`
 }
 
 // Update routes the [BookUpdateOptions] to the correct side of the book and enforces checks to preserve book integrity.
@@ -120,7 +121,9 @@ func (b *Book) Update(opts *BookUpdateOptions) {
 	if b.EnableMaxDepth {
 		b.EnforceDepth()
 	}
-	b.OnUpdated.Call(opts)
+	if !opts.Silent {
+		b.OnUpdated.Call(opts)
+	}
 }
 
 // BestBid returns the highest bid price level.

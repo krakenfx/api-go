@@ -1,13 +1,8 @@
 package derivatives
 
-import (
-	"github.com/krakenfx/api-go/pkg/kraken"
-)
-
 // WebSocket wraps a [WebSocketBase] struct with order management and subscription request functions.
 type WebSocket struct {
-	REST  *REST
-	books *kraken.Map[string, kraken.Book]
+	REST *REST
 	*WebSocketBase
 }
 
@@ -17,7 +12,6 @@ type WebSocket struct {
 func NewWebSocket() *WebSocket {
 	ws := &WebSocket{
 		REST:          NewREST(),
-		books:         kraken.NewMap[string, kraken.Book](),
 		WebSocketBase: NewWebSocketBase(),
 	}
 	return ws

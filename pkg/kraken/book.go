@@ -227,10 +227,10 @@ type MaxDepthExceededResult struct {
 }
 
 func (b *Book) enforceDepth() {
-	for b.Bids.Levels.Length() > b.MaxDepth {
+	for len(b.Bids.Levels) > b.MaxDepth {
 		b.OnMaxDepthExceeded.Call(&MaxDepthExceededResult{
 			Side:         Bid,
-			CurrentDepth: b.Bids.Levels.Length(),
+			CurrentDepth: len(b.Bids.Levels),
 			MaxDepth:     b.MaxDepth,
 			Worst:        b.worstBid(),
 		})
@@ -241,10 +241,10 @@ func (b *Book) enforceDepth() {
 			Timestamp: time.Now(),
 		})
 	}
-	for b.Asks.Levels.Length() > b.MaxDepth {
+	for len(b.Asks.Levels) > b.MaxDepth {
 		b.OnMaxDepthExceeded.Call(&MaxDepthExceededResult{
 			Side:         Ask,
-			CurrentDepth: b.Asks.Levels.Length(),
+			CurrentDepth: len(b.Asks.Levels),
 			MaxDepth:     b.MaxDepth,
 			Worst:        b.worstAsk(),
 		})
@@ -403,14 +403,14 @@ type Side struct {
 	High      *Level
 	Low       *Level
 	Last      *Level
-	Levels    *Map[string, Level]
+	Levels    map[string]*Level
 	mux       sync.RWMutex
 }
 
 // NewSide constructs a new [Side] with default values.
 func NewSide() *Side {
 	return &Side{
-		Levels: NewMap[string, Level](),
+		Levels: make(map[string]*Level),
 	}
 }
 
@@ -502,10 +502,10 @@ func (s *Side) Update(opts *BookUpdateOptions) {
 }
 
 func (s *Side) update(opts *BookUpdateOptions) {
-	level, err := s.Levels.Get(opts.Price.String())
-	if err != nil && opts.Quantity.Sign() == 1 {
+	level, ok := s.Levels[opts.Price.String()]
+	if !ok && opts.Quantity.Sign() == 1 {
 		s.add(opts)
-	} else if err == nil {
+	} else {
 		level.update(opts)
 	}
 	if level != nil && level.Quantity.Sign() <= 0 {
@@ -541,7 +541,7 @@ func (s *Side) add(opts *BookUpdateOptions) {
 		}
 	}
 	level.update(opts)
-	s.Levels.Set(level.GetPriceString(), level)
+	s.Levels[level.GetPriceString()] = level
 }
 
 func (s *Side) delete(level *Level) {
@@ -557,7 +557,7 @@ func (s *Side) delete(level *Level) {
 	if level.Higher != nil {
 		level.Higher.Lower = level.Lower
 	}
-	s.Levels.Delete(level.GetPriceString())
+	delete(s.Levels, level.GetPriceString())
 }
 
 // Level contains price level information.

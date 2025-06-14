@@ -69,7 +69,9 @@ func NewRequestWithOptions(opts RequestOptions) (request *Request, err error) {
 	if opts.UserAgent != "" {
 		request.Header.Set("User-Agent", opts.UserAgent)
 	}
-	request.SetHeaders(opts.Headers)
+	if err := request.SetHeaders(opts.Headers); err != nil {
+		return request, fmt.Errorf("set headers: %w", err)
+	}
 	if opts.Method != "" {
 		request.Method = opts.Method
 	}
@@ -248,10 +250,13 @@ func (r *Request) SetHeader(key string, value any) (err error) {
 }
 
 // SetHeaders ranges over the hash map and calls [Request.SetHeader].
-func (r *Request) SetHeaders(h map[string]any) {
+func (r *Request) SetHeaders(h map[string]any) error {
 	for k, v := range h {
-		r.Header.Set(k, v)
+		if err := r.SetHeader(k, v); err != nil {
+			return fmt.Errorf("set header %s: %w", k, err)
+		}
 	}
+	return nil
 }
 
 // SetBody sets the request body based on the media type.

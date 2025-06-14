@@ -13,7 +13,7 @@ func main() {
 	client.BaseURL = os.Getenv("KRAKEN_API_SPOT_REST_URL")
 	client.PublicKey = os.Getenv("KRAKEN_API_SPOT_PUBLIC")
 	client.PrivateKey = os.Getenv("KRAKEN_API_SPOT_SECRET")
-	withdrawMethods, err := client.Issue(&spot.RequestOptions{
+	withdrawMethods, err := client.Call(spot.RequestOptions{
 		Auth:   true,
 		Method: "POST",
 		Path:   []any{"/0/private/WithdrawMethods"},

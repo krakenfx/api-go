@@ -15,7 +15,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, instrument := range resp.Instruments {
+	for _, instrument := range resp.Result.Instruments {
 		fmt.Printf("Symbol: %s", instrument.Symbol)
 		fmt.Printf(", Lot decimals: %s", instrument.ContractValueTradePrecision)
 		fmt.Printf(", Tick size: %s", instrument.TickSize)

@@ -1,10 +1,6 @@
 name: Email Address Check
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+on: [ push ]
 
 jobs:
   check-emails:

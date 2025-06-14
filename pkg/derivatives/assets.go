@@ -29,7 +29,7 @@ func (m *AssetManager) Use(r *REST) error {
 	if err != nil {
 		return err
 	}
-	m.Update(resp.Instruments)
+	m.Update(resp.Result.Instruments)
 	return nil
 }
 

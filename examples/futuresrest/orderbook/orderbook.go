@@ -20,7 +20,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, side := range [][][]*kraken.Money{resp.OrderBook.Asks, resp.OrderBook.Bids} {
+	for _, side := range [][][]*kraken.Money{resp.Result.OrderBook.Asks, resp.Result.OrderBook.Bids} {
 		for i := 9; i >= 0 && i < len(side); i-- {
 			fmt.Printf("%s - %s\n", side[i][0], side[i][1])
 		}

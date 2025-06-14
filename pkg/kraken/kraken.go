@@ -7,10 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"maps"
-	"reflect"
-	"slices"
-	"strings"
 
 	"github.com/google/uuid"
 )
@@ -72,79 +68,10 @@ func Sign(key string, message []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(hmacHash.Sum(nil)), nil
 }
 
-// StructToMap converts a struct into a map[string]any object.
-func StructToMap(s any) (map[string]any, error) {
-	m := make(map[string]any)
-	sType := reflect.TypeOf(s)
-	sValue := reflect.ValueOf(s)
-	if sType.Kind() == reflect.Ptr {
-		sType = sType.Elem()
-		sValue = sValue.Elem()
+// Must handles conversion.
+func Must[T any](v T, err error) T {
+	if err != nil {
+		panic(err)
 	}
-	if sType.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("s is not a struct")
-	}
-	for i := range sType.NumField() {
-		field := sType.Field(i)
-		if !field.IsExported() {
-			continue
-		}
-		key := field.Name
-		fieldValue := sValue.FieldByName(key)
-		mapTag := field.Tag.Get("map")
-		mapTagParts := strings.Split(mapTag, ",")
-		jsonTag := field.Tag.Get("json")
-		if jsonTag == "-" {
-			continue
-		}
-		jsonTagParts := strings.Split(jsonTag, ",")
-		if slices.Contains(jsonTagParts, "omitempty") && fieldValue.IsZero() {
-			continue
-		}
-		if len(jsonTagParts) > 0 && len(jsonTagParts[0]) > 0 {
-			key = jsonTagParts[0]
-		}
-		// Convert fields with `map:"stringify"` to a JSON string.
-		if slices.Contains(mapTagParts, "stringify") {
-			value, err := json.Marshal(fieldValue.Interface())
-			if err != nil {
-				return nil, fmt.Errorf("stringify: %w", err)
-			}
-			m[key] = string(value)
-			continue
-		}
-		// Dereference fields with pointer.
-		for fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() {
-			fieldValue = fieldValue.Elem()
-		}
-		value := fieldValue.Interface()
-		// Process fields with structs.
-		if fieldValue.Kind() == reflect.Struct {
-			var err error
-			value, err = StructToMap(value)
-			if err != nil {
-				return nil, fmt.Errorf("struct to map: %s", err)
-			}
-		}
-		// Convert slice of structs to a slice of maps.
-		if (fieldValue.Kind() == reflect.Array || fieldValue.Kind() == reflect.Slice) && fieldValue.Type().Elem().Kind() == reflect.Struct {
-			var arr []any
-			for j := range fieldValue.Len() {
-				elem := fieldValue.Index(j).Interface()
-				mapped, err := StructToMap(elem)
-				if err != nil {
-					return nil, fmt.Errorf("struct to map: %s", err)
-				}
-				arr = append(arr, mapped)
-			}
-			value = arr
-		}
-		// Copy embedded fields into the main map.
-		if fieldValueMap, ok := value.(map[string]any); ok && field.Anonymous {
-			maps.Copy(m, fieldValueMap)
-			continue
-		}
-		m[key] = value
-	}
-	return m, nil
+	return v
 }

@@ -169,7 +169,6 @@ type OpenOrder struct {
 }
 
 type DerivativesResponse struct {
-	Result           string    `json:"result,omitempty"`
-	ServerTime       time.Time `json:"serverTime,omitempty"`
-	*kraken.Response `json:"-"`
+	Result     string    `json:"result,omitempty"`
+	ServerTime time.Time `json:"serverTime,omitempty"`
 }

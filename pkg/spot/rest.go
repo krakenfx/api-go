@@ -23,233 +23,6 @@ type REST struct {
 	Executor   kraken.ExecutorFunction
 }
 
-// CreateUserRequest contains the parameters for [REST.CreateUser].
-type CreateUserRequest struct {
-	*UserInfo
-}
-
-// CreateUserResult contains the result of a [REST.CreateUser] response.
-type CreateUserResult struct {
-	User string `json:"user,omitempty"`
-}
-
-// UpdateUserQuery contains the query parameters for [REST.UpdateUser]
-type UpdateUserQuery struct {
-	User string `json:"user,omitempty"`
-}
-
-// UpdateUserBody contains the body parameters for [REST.UpdateUser]
-type UpdateUserBody struct {
-	*UserInfo
-}
-
-// UpdateUserRequest contains the parameters for [REST.UpdateUser]
-type UpdateUserRequest struct {
-	UpdateUserQuery *UpdateUserQuery `json:"query,omitempty"`
-	UpdateUserBody  *UpdateUserBody  `json:"body,omitempty"`
-}
-
-// GetUserRequest contains the parameters for [REST.GetUser]
-type GetUserRequest struct {
-	User string `json:"user,omitempty"`
-}
-
-// GetUserResult contains the result of a [REST.GetUser] response.
-type GetUserResult struct {
-	User       string      `json:"user,omitempty"`
-	ExternalID string      `json:"external_id,omitempty"`
-	UserType   string      `json:"user_type,omitempty"`
-	Status     *UserStatus `json:"status,omitempty"`
-	CreatedAt  string      `json:"created_at,omitempty"`
-}
-
-// VerificationRequestQuery contains the query parameters for [REST.VerifyUser].
-type VerificationRequestQuery struct {
-	User string `json:"user,omitempty"`
-}
-
-// VerificationRequestBody contains the body parameters for [REST.VerifyUser].
-type VerificationRequestBody struct {
-	Type                       string                               `json:"type,omitempty"`
-	Metadata                   *VerificationMetadata                `json:"metadata,omitempty" map:"stringify"`
-	SanctionsVendorResponse    string                               `json:"sanctions_vendor_response,omitempty"`
-	NegativeNewsVendorResponse string                               `json:"negative_news_vendor_response,omitempty"`
-	PepVendorResponse          string                               `json:"pep_vendor_response,omitempty"`
-	Selfie                     func() (kraken.MultipartFile, error) `json:"selfie,omitempty"`
-	VendorResponse             func() (kraken.MultipartFile, error) `json:"vendor_response,omitempty"`
-	Document                   func() (kraken.MultipartFile, error) `json:"document,omitempty"`
-	Front                      func() (kraken.MultipartFile, error) `json:"front,omitempty"`
-	Back                       func() (kraken.MultipartFile, error) `json:"back,omitempty"`
-}
-
-// SubmitVerificationRequest contains the parameters for [REST.VerifyUser].
-type SubmitVerificationRequest struct {
-	VerificationRequestQuery *VerificationRequestQuery `json:"query,omitempty"`
-	VerificationRequestBody  *VerificationRequestBody  `json:"body,omitempty"`
-}
-
-// SubmitVerificationResult contains the result of a [REST.VerifyUser] response.
-type SubmitVerificationResult struct {
-	VerificationID string `json:"verification_id,omitempty"`
-}
-
-type ServerTimeResult struct {
-	UnixTime int    `json:"unixtime,omitempty"`
-	RFC1123  string `json:"rfc1123,omitempty"`
-}
-
-type TradesHistoryRequest struct {
-	Type             string `json:"type,omitempty"`
-	Trades           bool   `json:"trades,omitempty"`
-	Start            int    `json:"start,omitempty"`
-	End              int    `json:"end,omitempty"`
-	Ofs              int    `json:"ofs,omitempty"`
-	ConsolidateTaker bool   `json:"consolidate_taker,omitempty"`
-	Ledgers          bool   `json:"ledgers,omitempty"`
-}
-
-type TradesHistoryResult struct {
-	Count  json.Number      `json:"count,omitempty"`
-	Trades map[string]Trade `json:"trades,omitempty"`
-}
-
-type OpenOrdersRequest struct {
-	Trades  bool   `json:"trades,omitempty"`
-	Userref int    `json:"userref,omitempty"`
-	ClOrdID string `json:"cl_ord_id,omitempty"`
-}
-
-type OpenOrdersResult struct {
-	Open map[string]Order `json:"open,omitempty"`
-}
-
-type ClosedOrdersRequest struct {
-	Trades           bool   `json:"trades,omitempty"`
-	Userref          int    `json:"userref,omitempty"`
-	ClOrdID          string `json:"cl_ord_id,omitempty"`
-	Start            int    `json:"start,omitempty"`
-	End              int    `json:"end,omitempty"`
-	Ofs              int    `json:"ofs,omitempty"`
-	CloseTime        string `json:"closeTime,omitempty"`
-	ConsolidateTaker bool   `json:"consolidate_taker,omitempty"`
-	WithoutCount     bool   `json:"without_count,omitempty"`
-}
-
-type ClosedOrdersResult struct {
-	Closed map[string]ClosedOrder `json:"closed,omitempty"`
-}
-
-type QueryOrdersRequest struct {
-	Trades           bool   `json:"trades,omitempty"`
-	Userref          int    `json:"userref,omitempty"`
-	TxID             string `json:"txid,omitempty"`
-	ConsolidateTaker bool   `json:"consolidate_taker,omitempty"`
-}
-
-type AddOrderRequest struct {
-	UserRef             int    `json:"userref,omitempty"`
-	ClOrdId             string `json:"cl_ord_id,omitempty"`
-	OrderType           string `json:"ordertype,omitempty"`
-	Type                string `json:"type,omitempty"`
-	Volume              string `json:"volume,omitempty"`
-	DisplayVol          string `json:"displayvol,omitempty"`
-	Pair                string `json:"pair,omitempty"`
-	Price               string `json:"price,omitempty"`
-	SecondaryPrice      string `json:"price2,omitempty"`
-	Trigger             string `json:"trigger,omitempty"`
-	Leverage            string `json:"leverage,omitempty"`
-	ReduceOnly          bool   `json:"reduce_only,omitempty"`
-	StpType             string `json:"stptype,omitempty"`
-	OrderFlags          string `json:"oflags,omitempty"`
-	TimeInForce         string `json:"timeinforce,omitempty"`
-	StartTm             string `json:"starttm,omitempty"`
-	ExpireTm            string `json:"expiretm,omitempty"`
-	CloseOrderType      string `json:"close[ordertype],omitempty"`
-	ClosePrice          string `json:"close[price],omitempty"`
-	CloseSecondaryPrice string `json:"close[price2],omitempty"`
-	Deadline            string `json:"deadline,omitempty"`
-	Validate            bool   `json:"validate,omitempty"`
-}
-
-type AddOrderResult struct {
-	OrderPlacementSingle
-}
-
-type AddBatchRequest struct {
-	Orders   []*OrderRequest `json:"orders,omitempty"`
-	Pair     string          `json:"pair,omitempty"`
-	Deadline string          `json:"deadline,omitempty"`
-	Validate bool            `json:"bool,omitempty"`
-}
-
-type AddBatchResult struct {
-	Orders []OrderPlacementBatch `json:"orders,omitempty"`
-}
-
-type AmendOrderRequest struct {
-	TxID            string `json:"txid,omitempty"`
-	ClOrdID         string `json:"cl_ord_id,omitempty"`
-	OrderQuantity   string `json:"order_qty,omitempty"`
-	DisplayQuantity string `json:"display_qty,omitempty"`
-	LimitPrice      string `json:"limit_price,omitempty"`
-	TriggerPrice    string `json:"trigger_price,omitempty"`
-	PostOnly        bool   `json:"post_only,omitempty"`
-	Deadline        string `json:"deadline,omitempty"`
-}
-
-type AmendOrderResult struct {
-	AmendID string `json:"amend_id,omitempty"`
-}
-
-type CancelResult struct {
-	Count   int  `json:"count,omitempty"`
-	Pending bool `json:"pending,omitempty"`
-}
-
-type CancelOrderRequest struct {
-	TxID    any    `json:"txid,omitempty"`
-	ClOrdID string `json:"cl_ord_id,omitempty"`
-}
-
-type AssetsRequest struct {
-	Asset        string `json:"asset,omitempty"`
-	AssetClass   string `json:"aclass,omitempty"`
-	AssetVersion int    `json:"assetVersion,omitempty"`
-}
-
-type AssetPairsRequest struct {
-	Pair         string `json:"pair,omitempty"`
-	Info         string `json:"info,omitempty"`
-	CountryCode  string `json:"country_code,omitempty"`
-	AssetVersion int    `json:"assetVersion,omitempty"`
-}
-
-type TickerRequest struct {
-	Pair string `json:"pair,omitempty"`
-}
-
-type OrderBookRequest struct {
-	Pair  string `json:"pair,omitempty"`
-	Count int    `json:"count,omitempty"`
-}
-
-type RecentTradesRequest struct {
-	Pair  string `json:"pair,omitempty"`
-	Since string `json:"since,omitempty"`
-	Count int    `json:"count,omitempty"`
-}
-
-type OHLCRequest struct {
-	Pair     string `json:"pair,omitempty"`
-	Interval int    `json:"interval,omitempty"`
-	Since    int    `json:"since,omitempty"`
-}
-
-type GetWebSocketsTokenResult struct {
-	Token   string `json:"token,omitempty"`
-	Expires int    `json:"expires,omitempty"`
-}
-
 // REST constructs a new [REST] struct with default values.
 //
 // For authentication, store the Spot API key on the PublicKey and PrivateKey fields.
@@ -310,6 +83,14 @@ func (r *REST) Call(opts RequestOptions) (*Response[any], error) {
 	return Call[any](r, opts)
 }
 
+type CreateUserRequest struct {
+	*UserInfo
+}
+
+type CreateUserResult struct {
+	User string `json:"user,omitempty"`
+}
+
 // CreateUser creates a new user account in the Kraken system.
 //
 // https://docs.kraken.com/api/docs/embed-api/create-embed-user
@@ -320,6 +101,19 @@ func (r *REST) CreateUser(opts *CreateUserRequest) (*Response[CreateUserResult],
 		Path:   "/0/private/CreateUser",
 		Body:   opts,
 	})
+}
+
+type UpdateUserQuery struct {
+	User string `json:"user,omitempty"`
+}
+
+type UpdateUserBody struct {
+	*UserInfo
+}
+
+type UpdateUserRequest struct {
+	UpdateUserQuery *UpdateUserQuery `json:"query,omitempty"`
+	UpdateUserBody  *UpdateUserBody  `json:"body,omitempty"`
 }
 
 // UpdateUser updates an existing user's profile.
@@ -334,6 +128,18 @@ func (r *REST) UpdateUser(opts *UpdateUserRequest) (*Response[string], error) {
 	})
 }
 
+type GetUserRequest struct {
+	User string `json:"user,omitempty"`
+}
+
+type GetUserResult struct {
+	User       string      `json:"user,omitempty"`
+	ExternalID string      `json:"external_id,omitempty"`
+	UserType   string      `json:"user_type,omitempty"`
+	Status     *UserStatus `json:"status,omitempty"`
+	CreatedAt  string      `json:"created_at,omitempty"`
+}
+
 // GetUser retrieves a previously created user.
 //
 // https://docs.kraken.com/api/docs/embed-api/get-embed-user
@@ -344,6 +150,32 @@ func (r *REST) GetUser(opts *GetUserRequest) (*Response[GetUserResult], error) {
 		Path:   "/0/private/GetUser",
 		Query:  opts,
 	})
+}
+
+type VerificationRequestQuery struct {
+	User string `json:"user,omitempty"`
+}
+
+type VerificationRequestBody struct {
+	Type                       string                               `json:"type,omitempty"`
+	Metadata                   *VerificationMetadata                `json:"metadata,omitempty" map:"stringify"`
+	SanctionsVendorResponse    string                               `json:"sanctions_vendor_response,omitempty"`
+	NegativeNewsVendorResponse string                               `json:"negative_news_vendor_response,omitempty"`
+	PepVendorResponse          string                               `json:"pep_vendor_response,omitempty"`
+	Selfie                     func() (kraken.MultipartFile, error) `json:"selfie,omitempty"`
+	VendorResponse             func() (kraken.MultipartFile, error) `json:"vendor_response,omitempty"`
+	Document                   func() (kraken.MultipartFile, error) `json:"document,omitempty"`
+	Front                      func() (kraken.MultipartFile, error) `json:"front,omitempty"`
+	Back                       func() (kraken.MultipartFile, error) `json:"back,omitempty"`
+}
+
+type SubmitVerificationRequest struct {
+	VerificationRequestQuery *VerificationRequestQuery `json:"query,omitempty"`
+	VerificationRequestBody  *VerificationRequestBody  `json:"body,omitempty"`
+}
+
+type SubmitVerificationResult struct {
+	VerificationID string `json:"verification_id,omitempty"`
 }
 
 // VerifyUser submits a verification for a user with documents and details.
@@ -372,6 +204,11 @@ func (r *REST) Balances() (*Response[map[string]*kraken.Money], error) {
 	})
 }
 
+type ServerTimeResult struct {
+	UnixTime int    `json:"unixtime,omitempty"`
+	RFC1123  string `json:"rfc1123,omitempty"`
+}
+
 // ServerTime retrieves the current server time.
 //
 // https://docs.kraken.com/api/docs/rest-api/get-server-time
@@ -380,6 +217,21 @@ func (r *REST) ServerTime() (*Response[ServerTimeResult], error) {
 		Method: "GET",
 		Path:   "/0/public/Time",
 	})
+}
+
+type TradesHistoryRequest struct {
+	Type             string `json:"type,omitempty"`
+	Trades           bool   `json:"trades,omitempty"`
+	Start            int    `json:"start,omitempty"`
+	End              int    `json:"end,omitempty"`
+	Ofs              int    `json:"ofs,omitempty"`
+	ConsolidateTaker bool   `json:"consolidate_taker,omitempty"`
+	Ledgers          bool   `json:"ledgers,omitempty"`
+}
+
+type TradesHistoryResult struct {
+	Count  json.Number      `json:"count,omitempty"`
+	Trades map[string]Trade `json:"trades,omitempty"`
 }
 
 // TradesHistory retrieves the trade events of the user.
@@ -394,6 +246,16 @@ func (r *REST) TradesHistory(opts *TradesHistoryRequest) (*Response[TradesHistor
 	})
 }
 
+type OpenOrdersRequest struct {
+	Trades  bool   `json:"trades,omitempty"`
+	Userref int    `json:"userref,omitempty"`
+	ClOrdID string `json:"cl_ord_id,omitempty"`
+}
+
+type OpenOrdersResult struct {
+	Open map[string]Order `json:"open,omitempty"`
+}
+
 // OpenOrders retrieves information about currently open orders.
 //
 // https://docs.kraken.com/api/docs/rest-api/get-open-orders
@@ -404,6 +266,22 @@ func (r *REST) OpenOrders(opts *OpenOrdersRequest) (*Response[OpenOrdersResult],
 		Path:   "/0/private/OpenOrders",
 		Body:   opts,
 	})
+}
+
+type ClosedOrdersRequest struct {
+	Trades           bool   `json:"trades,omitempty"`
+	Userref          int    `json:"userref,omitempty"`
+	ClOrdID          string `json:"cl_ord_id,omitempty"`
+	Start            int    `json:"start,omitempty"`
+	End              int    `json:"end,omitempty"`
+	Ofs              int    `json:"ofs,omitempty"`
+	CloseTime        string `json:"closeTime,omitempty"`
+	ConsolidateTaker bool   `json:"consolidate_taker,omitempty"`
+	WithoutCount     bool   `json:"without_count,omitempty"`
+}
+
+type ClosedOrdersResult struct {
+	Closed map[string]ClosedOrder `json:"closed,omitempty"`
 }
 
 // ClosedOrders retrieves information about orders that have been closed.
@@ -418,6 +296,13 @@ func (r *REST) ClosedOrders(opts *ClosedOrdersRequest) (*Response[ClosedOrdersRe
 	})
 }
 
+type QueryOrdersRequest struct {
+	Trades           bool   `json:"trades,omitempty"`
+	Userref          int    `json:"userref,omitempty"`
+	TxID             string `json:"txid,omitempty"`
+	ConsolidateTaker bool   `json:"consolidate_taker,omitempty"`
+}
+
 // QueryOrders retrieves information about specific orders.
 //
 // https://docs.kraken.com/api/docs/rest-api/get-orders-info
@@ -428,6 +313,35 @@ func (r *REST) QueryOrders(opts *QueryOrdersRequest) (*Response[map[string]Close
 		Path:   "/0/private/QueryOrders",
 		Body:   opts,
 	})
+}
+
+type AddOrderRequest struct {
+	UserRef             int    `json:"userref,omitempty"`
+	ClOrdId             string `json:"cl_ord_id,omitempty"`
+	OrderType           string `json:"ordertype,omitempty"`
+	Type                string `json:"type,omitempty"`
+	Volume              string `json:"volume,omitempty"`
+	DisplayVol          string `json:"displayvol,omitempty"`
+	Pair                string `json:"pair,omitempty"`
+	Price               string `json:"price,omitempty"`
+	SecondaryPrice      string `json:"price2,omitempty"`
+	Trigger             string `json:"trigger,omitempty"`
+	Leverage            string `json:"leverage,omitempty"`
+	ReduceOnly          bool   `json:"reduce_only,omitempty"`
+	StpType             string `json:"stptype,omitempty"`
+	OrderFlags          string `json:"oflags,omitempty"`
+	TimeInForce         string `json:"timeinforce,omitempty"`
+	StartTm             string `json:"starttm,omitempty"`
+	ExpireTm            string `json:"expiretm,omitempty"`
+	CloseOrderType      string `json:"close[ordertype],omitempty"`
+	ClosePrice          string `json:"close[price],omitempty"`
+	CloseSecondaryPrice string `json:"close[price2],omitempty"`
+	Deadline            string `json:"deadline,omitempty"`
+	Validate            bool   `json:"validate,omitempty"`
+}
+
+type AddOrderResult struct {
+	OrderPlacementSingle
 }
 
 // AddOrder places a new order.
@@ -442,6 +356,17 @@ func (r *REST) AddOrder(opts *AddOrderRequest) (*Response[AddOrderResult], error
 	})
 }
 
+type AddBatchRequest struct {
+	Orders   []*OrderRequest `json:"orders,omitempty"`
+	Pair     string          `json:"pair,omitempty"`
+	Deadline string          `json:"deadline,omitempty"`
+	Validate bool            `json:"bool,omitempty"`
+}
+
+type AddBatchResult struct {
+	Orders []OrderPlacementBatch `json:"orders,omitempty"`
+}
+
 // AddBatch places a collection of orders.
 //
 // https://docs.kraken.com/api/docs/rest-api/add-order-batch
@@ -454,6 +379,21 @@ func (r *REST) AddBatch(opts *AddBatchRequest) (*Response[AddBatchResult], error
 	})
 }
 
+type AmendOrderRequest struct {
+	TxID            string `json:"txid,omitempty"`
+	ClOrdID         string `json:"cl_ord_id,omitempty"`
+	OrderQuantity   string `json:"order_qty,omitempty"`
+	DisplayQuantity string `json:"display_qty,omitempty"`
+	LimitPrice      string `json:"limit_price,omitempty"`
+	TriggerPrice    string `json:"trigger_price,omitempty"`
+	PostOnly        bool   `json:"post_only,omitempty"`
+	Deadline        string `json:"deadline,omitempty"`
+}
+
+type AmendOrderResult struct {
+	AmendID string `json:"amend_id,omitempty"`
+}
+
 // AmendOrder changes the properties of an open order.
 //
 // https://docs.kraken.com/api/docs/rest-api/amend-order
@@ -464,6 +404,16 @@ func (r *REST) AmendOrder(opts *AmendOrderRequest) (*Response[AmendOrderResult],
 		Path:   "/0/private/AmendOrder",
 		Body:   opts,
 	})
+}
+
+type CancelOrderRequest struct {
+	TxID    any    `json:"txid,omitempty"`
+	ClOrdID string `json:"cl_ord_id,omitempty"`
+}
+
+type CancelResult struct {
+	Count   int  `json:"count,omitempty"`
+	Pending bool `json:"pending,omitempty"`
 }
 
 // CancelOrder cancels an open order.
@@ -489,6 +439,12 @@ func (r *REST) CancelAll() (*Response[CancelResult], error) {
 	})
 }
 
+type AssetsRequest struct {
+	Asset        string `json:"asset,omitempty"`
+	AssetClass   string `json:"aclass,omitempty"`
+	AssetVersion int    `json:"assetVersion,omitempty"`
+}
+
 // Assets retrieves information about available assets on spot.
 //
 // https://docs.kraken.com/api/docs/rest-api/get-asset-info
@@ -498,6 +454,13 @@ func (r *REST) Assets(opts *AssetsRequest) (*Response[map[string]AssetInfo], err
 		Path:   "/0/public/Assets",
 		Query:  opts,
 	})
+}
+
+type AssetPairsRequest struct {
+	Pair         string `json:"pair,omitempty"`
+	Info         string `json:"info,omitempty"`
+	CountryCode  string `json:"country_code,omitempty"`
+	AssetVersion int    `json:"assetVersion,omitempty"`
 }
 
 // AssetPairs retrieves information about tradeable asset pairs on spot.
@@ -511,6 +474,10 @@ func (r *REST) AssetPairs(opts *AssetPairsRequest) (*Response[map[string]AssetPa
 	})
 }
 
+type TickerRequest struct {
+	Pair string `json:"pair,omitempty"`
+}
+
 // Ticker retrieves information of all spot markets, or a specific market if `pair` is specified.
 //
 // https://docs.kraken.com/api/docs/rest-api/get-ticker-information
@@ -520,6 +487,11 @@ func (r *REST) Ticker(opts *TickerRequest) (*Response[map[string]AssetTickerInfo
 		Path:   "/0/public/Ticker",
 		Query:  opts,
 	})
+}
+
+type OrderBookRequest struct {
+	Pair  string `json:"pair,omitempty"`
+	Count int    `json:"count,omitempty"`
 }
 
 // OrderBook retrieves the bid and ask records of a specific spot market.
@@ -533,6 +505,12 @@ func (r *REST) OrderBook(opts *OrderBookRequest) (*Response[map[string]OrderBook
 	})
 }
 
+type RecentTradesRequest struct {
+	Pair  string `json:"pair,omitempty"`
+	Since string `json:"since,omitempty"`
+	Count int    `json:"count,omitempty"`
+}
+
 // RecentTrades retrieves the recent trade records of a specified spot market.
 //
 // https://docs.kraken.com/api/docs/rest-api/get-recent-trades
@@ -542,6 +520,12 @@ func (r *REST) RecentTrades(opts *RecentTradesRequest) (*Response[map[string]any
 		Path:   "/0/public/Trades",
 		Query:  opts,
 	})
+}
+
+type OHLCRequest struct {
+	Pair     string `json:"pair,omitempty"`
+	Interval int    `json:"interval,omitempty"`
+	Since    int    `json:"since,omitempty"`
 }
 
 // OHLC retrieves recent open, high, low, close, and volume records of a specified spot market.
@@ -555,6 +539,11 @@ func (r *REST) OHLC(opts *OHLCRequest) (*Response[map[string]any], error) {
 	})
 }
 
+type GetWebSocketsTokenResult struct {
+	Token   string `json:"token,omitempty"`
+	Expires int    `json:"expires,omitempty"`
+}
+
 // GetWebSocketsToken generates an authentication token for WebSocket, which must be used within 15 minutes of creation to prevent expiration.
 //
 // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
@@ -563,6 +552,369 @@ func (r *REST) GetWebSocketsToken() (*Response[GetWebSocketsTokenResult], error)
 		Auth:   true,
 		Method: "POST",
 		Path:   "/0/private/GetWebSocketsToken",
+	})
+}
+
+type DepositMethodsRequest struct {
+	Asset      string `json:"asset,omitempty"`
+	AssetClass string `json:"aclass,omitempty"`
+}
+
+// DepositMethods returns methods available for depositing a particular asset.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-deposit-methods
+func (r *REST) DepositMethods(opts *DepositMethodsRequest) (*Response[[]DepositMethod], error) {
+	return Call[[]DepositMethod](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/DepositMethods",
+		Body:   opts,
+	})
+}
+
+type DepositAddressesRequest struct {
+	Asset  string `json:"asset,omitempty"`
+	Method string `json:"method,omitempty"`
+	New    bool   `json:"new,omitempty"`
+	Amount string `json:"amount,omitempty"`
+}
+
+// DepositMethods returns methods available for depositing a particular asset.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-deposit-methods
+func (r *REST) DepositAddresses(opts *DepositAddressesRequest) (*Response[[]DepositAddress], error) {
+	return Call[[]DepositAddress](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/DepositMethods",
+		Body:   opts,
+	})
+}
+
+type DepositStatusRequest struct {
+	Asset  string `json:"asset,omitempty"`
+	Aclass string `json:"aclass,omitempty"`
+	Method string `json:"method,omitempty"`
+	Start  string `json:"start,omitempty"`
+	End    string `json:"end,omitempty"`
+	Cursor any    `json:"cursor,omitempty"` // bool or string
+	Limit  int    `json:"limit,omitempty"`
+}
+
+// DepositStatus retrieves recent deposit information.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-status-recent-deposits
+func (r *REST) DepositStatus(opts *DepositStatusRequest) (*Response[[]DepositStatus], error) {
+	return Call[[]DepositStatus](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/DepositStatus",
+		Body:   opts,
+	})
+}
+
+type WithdrawMethodsRequest struct {
+	Asset   string `json:"asset,omitempty"`
+	Aclass  string `json:"aclass,omitempty"`
+	Network string `json:"network,omitempty"`
+}
+
+// WithdrawMethods retrieves available withdrawal methods.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-withdraw-methods
+func (r *REST) WithdrawMethods(opts *WithdrawMethodsRequest) (*Response[[]WithdrawMethod], error) {
+	return Call[[]WithdrawMethod](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/WithdrawMethods",
+		Body:   opts,
+	})
+}
+
+type WithdrawAddressesRequest struct {
+	Asset    string `json:"asset,omitempty"`
+	Aclass   string `json:"aclass,omitempty"`
+	Method   string `json:"method,omitempty"`
+	Key      string `json:"key,omitempty"`
+	Verified *bool  `json:"verified,omitempty"`
+}
+
+// WithdrawAddresses retrieves available withdrawal addresses.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-withdrawal-addresses
+func (r *REST) WithdrawAddresses(opts *WithdrawAddressesRequest) (*Response[[]WithdrawAddress], error) {
+	return Call[[]WithdrawAddress](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/WithdrawAddresses",
+		Body:   opts,
+	})
+}
+
+type WithdrawInfoRequest struct {
+	Asset   string `json:"asset"`
+	Key     string `json:"key"`
+	Amount  string `json:"amount"`
+	Nonce   int64  `json:"nonce"`
+	Address string `json:"address,omitempty"`
+	MaxFee  string `json:"max_fee,omitempty"`
+}
+
+// WithdrawInfo retrieves information about withdrawal fees and limits.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-withdrawal-information
+func (r *REST) WithdrawInfo(opts *WithdrawInfoRequest) (*Response[WithdrawInfo], error) {
+	return Call[WithdrawInfo](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/WithdrawInfo",
+		Body:   opts,
+	})
+}
+
+type WithdrawRequest struct {
+	Asset   string `json:"asset"`
+	Key     string `json:"key"`
+	Amount  string `json:"amount"`
+	Nonce   int64  `json:"nonce"`
+	Address string `json:"address,omitempty"`
+	MaxFee  string `json:"max_fee,omitempty"`
+}
+
+type WithdrawResult struct {
+	Refid string `json:"refid"`
+}
+
+// Withdraw makes a withdrawal request.
+//
+// https://docs.kraken.com/api/docs/rest-api/withdraw-funds
+func (r *REST) Withdraw(opts *WithdrawRequest) (*Response[WithdrawResult], error) {
+	return Call[WithdrawResult](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/Withdraw",
+		Body:   opts,
+	})
+}
+
+type WithdrawStatusRequest struct {
+	Asset  string `json:"asset,omitempty"`
+	Aclass string `json:"aclass,omitempty"`
+	Method string `json:"method,omitempty"`
+	Start  string `json:"start,omitempty"`
+	End    string `json:"end,omitempty"`
+	Cursor any    `json:"cursor,omitempty"` // bool or string
+	Limit  int    `json:"limit,omitempty"`
+}
+
+// WithdrawStatus retrieves information about recent withdrawals.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-status-recent-withdrawals
+func (r *REST) WithdrawStatus(opts *WithdrawStatusRequest) (*Response[[]WithdrawStatus], error) {
+	return Call[[]WithdrawStatus](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/WithdrawStatus",
+		Body:   opts,
+	})
+}
+
+type WithdrawCancelRequest struct {
+	Asset string `json:"asset"`
+	Refid string `json:"refid"`
+	Nonce int64  `json:"nonce"`
+}
+
+// WithdrawCancel cancels a pending withdrawal request.
+//
+// https://docs.kraken.com/api/docs/rest-api/cancel-withdrawal
+func (r *REST) WithdrawCancel(opts *WithdrawCancelRequest) (*Response[bool], error) {
+	return Call[bool](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/WithdrawCancel",
+		Body:   opts,
+	})
+}
+
+type WalletTransferRequest struct {
+	Asset  string `json:"asset"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Amount string `json:"amount"`
+	Nonce  int64  `json:"nonce"`
+}
+
+type WalletTransferResponse struct {
+	Refid string `json:"refid"`
+}
+
+// WalletTransfer transfers funds from spot to futures wallet.
+//
+// https://docs.kraken.com/api/docs/rest-api/wallet-transfer
+func (r *REST) WalletTransfer(opts *WalletTransferRequest) (*Response[WalletTransferResponse], error) {
+	return Call[WalletTransferResponse](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/WalletTransfer",
+		Body:   opts,
+	})
+}
+
+type CreateSubaccountRequest struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+// CreateSubaccount creates a trading subaccount in Kraken.
+//
+// https://docs.kraken.com/api/docs/rest-api/create-subaccount
+func (r *REST) CreateSubaccount(opts *CreateSubaccountRequest) (*Response[bool], error) {
+	return Call[bool](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/CreateSubaccount",
+		Body:   opts,
+	})
+}
+
+type AccountTransferRequest struct {
+	Asset  string `json:"asset"`
+	Amount string `json:"amount"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+}
+
+type AccountTransferResult struct {
+	TransferID string `json:"transfer_id,omitempty"`
+	Status     string `json:"status,omitempty"`
+}
+
+// AccountTransfer transfers funds to or from subaccounts.
+//
+// https://docs.kraken.com/api/docs/rest-api/account-transfer
+func (r *REST) AccountTransfer(opts *AccountTransferRequest) (*Response[AccountTransferResult], error) {
+	return Call[AccountTransferResult](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/AccountTransfer",
+		Body:   opts,
+	})
+}
+
+type EarnAllocateRequest struct {
+	Amount     string `json:"amount"`
+	StrategyID string `json:"strategy_id"`
+}
+
+// EarnAllocate allocates funds to an Earn strategy.
+//
+// https://docs.kraken.com/api/docs/rest-api/allocate-strategy
+func (r *REST) EarnAllocate(opts *EarnAllocateRequest) (*Response[bool], error) {
+	return Call[bool](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/Earn/Allocate",
+		Body:   opts,
+	})
+}
+
+type EarnDeallocateRequest struct {
+	Amount     string `json:"amount"`
+	StrategyID string `json:"strategy_id"`
+}
+
+// EarnDeallocate deallocates funds from an Earn strategy.
+//
+// https://docs.kraken.com/api/docs/rest-api/deallocate-strategy
+func (r *REST) EarnDeallocate(opts *EarnDeallocateRequest) (*Response[bool], error) {
+	return Call[bool](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/Earn/Deallocate",
+		Body:   opts,
+	})
+}
+
+type EarnStatusRequest struct {
+	Nonce      int64  `json:"nonce"`
+	StrategyID string `json:"strategy_id"`
+}
+type EarnStatusResult struct {
+	Pending bool `json:"pending"`
+}
+
+// EarnAllocateStatus gets the status of the last allocation request.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-allocate-strategy-status
+func (r *REST) EarnAllocateStatus(opts *EarnStatusRequest) (*Response[EarnStatusResult], error) {
+	return Call[EarnStatusResult](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/Earn/AllocateStatus",
+		Body:   opts,
+	})
+}
+
+// EarnDeallocateStatus gets the status of the last deallocation request.
+//
+// https://docs.kraken.com/api/docs/rest-api/get-deallocate-strategy-status
+func (r *REST) EarnDeallocateStatus(opts *EarnStatusRequest) (*Response[EarnStatusResult], error) {
+	return Call[EarnStatusResult](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/Earn/DeallocateStatus",
+		Body:   opts,
+	})
+}
+
+type EarnStrategiesRequest struct {
+	Ascending bool     `json:"ascending,omitempty"`
+	Asset     string   `json:"asset,omitempty"`
+	Cursor    string   `json:"cursor,omitempty"`
+	Limit     int      `json:"limit,omitempty"`
+	LockType  []string `json:"lock_type,omitempty"`
+}
+type EarnStrategiesResult struct {
+	Items      []EarnStrategy `json:"items,omitempty"`
+	NextCursor string         `json:"next_cursor,omitempty"`
+}
+
+// EarnStrategies lists earn strategies along with their parameters.
+//
+// https://docs.kraken.com/api/docs/rest-api/list-strategies
+func (r *REST) EarnStrategies(opts *EarnStrategiesRequest) (*Response[EarnStrategiesResult], error) {
+	return Call[EarnStrategiesResult](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/Earn/Strategies",
+		Body:   opts,
+	})
+}
+
+type EarnAllocationsRequest struct {
+	Nonce               int64  `json:"nonce"`
+	Ascending           bool   `json:"ascending,omitempty"`
+	ConvertedAsset      string `json:"converted_asset,omitempty"`
+	HideZeroAllocations bool   `json:"hide_zero_allocations,omitempty"`
+}
+
+type EarnAllocationsResult struct {
+	ConvertedAsset string           `json:"converted_asset,omitempty"`
+	TotalAllocated string           `json:"total_allocated,omitempty"`
+	TotalRewarded  string           `json:"total_rewarded,omitempty"`
+	Items          []EarnAllocation `json:"items,omitempty"`
+}
+
+// EarnAllocations lists all allocations for the user.
+//
+// https://docs.kraken.com/api/docs/rest-api/list-allocations
+func (r *REST) EarnAllocations(opts *EarnAllocationsRequest) (*Response[EarnAllocationsResult], error) {
+	return Call[EarnAllocationsResult](r, RequestOptions{
+		Auth:   true,
+		Method: "POST",
+		Path:   "/0/private/Earn/Allocations",
+		Body:   opts,
 	})
 }
 

@@ -50,103 +50,6 @@ type InstrumentResult struct {
 	DerivativesResponse
 }
 
-type TickersResult struct {
-	Tickers []TickerData `json:"tickers,omitempty"`
-	DerivativesResponse
-}
-
-type TickersSingleResult struct {
-	Data   TickerData `json:"ticker,omitempty"`
-	Errors []any      `json:"errors,omitempty"`
-	Error  any        `json:"error,omitempty"`
-	DerivativesResponse
-}
-type OrderBookRequest struct {
-	Symbol string `json:"symbol,omitempty"`
-}
-
-type OrderBookResult struct {
-	OrderBook OrderBook `json:"orderBook,omitempty"`
-	DerivativesResponse
-}
-
-type TradeHistoryRequest struct {
-	Symbol   string `json:"symbol,omitempty"`
-	LastTime string `json:"lastTime,omitempty"`
-}
-
-type TradeHistoryResult struct {
-	History []Trade `json:"history,omitempty"`
-	DerivativesResponse
-}
-
-type AccountsResult struct {
-	Accounts map[string]any `json:"accounts,omitempty"`
-	DerivativesResponse
-}
-
-type OrderRequest struct {
-	ProcessBefore             time.Time `json:"processBefore,omitempty"`
-	OrderType                 string    `json:"orderType,omitempty"`
-	Symbol                    string    `json:"symbol,omitempty"`
-	Side                      string    `json:"side,omitempty"`
-	Size                      string    `json:"size,omitempty"`
-	LimitPrice                string    `json:"limitPrice,omitempty"`
-	StopPrice                 string    `json:"stopPrice,omitempty"`
-	ClientOrderID             string    `json:"cliOrdId,omitempty"`
-	TriggerSignal             string    `json:"triggerSignal,omitempty"`
-	ReduceOnly                bool      `json:"reduceOnly,omitempty"`
-	TrailingStopMaxDeviation  string    `json:"trailingStopMaxDeviation,omitempty"`
-	TrailingStopDeviationUnit string    `json:"trailingStopDeviationUnit,omitempty"`
-	LimitPriceOffsetValue     string    `json:"limitPriceOffsetValue,omitempty"`
-	LimitPriceOffsetUnit      string    `json:"limitPriceOffsetUnit,omitempty"`
-}
-
-type SendOrderResult struct {
-	SendStatus OrderStatus `json:"sendStatus,omitempty"`
-	DerivativesResponse
-}
-
-type BatchOrderRequest struct {
-	ProcessBefore time.Time       `json:"processBefore,omitempty"`
-	JSON          *BatchOrderJson `json:"json,omitempty" map:"stringify"`
-}
-
-type BatchOrderResult struct {
-	BatchStatus []BatchStatusInfo `json:"batchStatus,omitempty"`
-	DerivativesResponse
-}
-
-type EditOrderResult struct {
-	EditStatus OrderStatus
-	DerivativesResponse
-}
-
-type CancelOrderRequest struct {
-	ProcessBefore time.Time `json:"processBefore,omitempty"`
-	OrderID       string    `json:"order_id,omitempty"`
-	ClientOrderID string    `json:"cliOrdId,omitempty"`
-}
-
-type CancelOrderResult struct {
-	CancelStatus OrderStatus `json:"cancelStatus,omitempty"`
-	DerivativesResponse
-}
-
-type CancelAllRequest struct {
-	Symbol string `json:"symbol,omitempty"`
-}
-
-type CancelAllResult struct {
-	CancelStatus CancelStatus `json:"cancelStatus,omitempty"`
-	DerivativesResponse
-}
-
-type OpenOrdersResult struct {
-	OpenOrders []OpenOrder `json:"openOrders,omitempty"`
-	DerivativesResponse
-}
-
 // Instruments retrieves the specifications of all available contract pairs.
 //
 // https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
@@ -171,6 +74,11 @@ func (r *REST) InstrumentSymbol(s string) (*Instrument, error) {
 	return nil, fmt.Errorf("not found")
 }
 
+type TickersResult struct {
+	Tickers []TickerData `json:"tickers,omitempty"`
+	DerivativesResponse
+}
+
 // Tickers retrieves the ticker information of all available contract pairs and indices.
 //
 // https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
@@ -179,6 +87,13 @@ func (r *REST) Tickers() (*Response[TickersResult], error) {
 		Method: "GET",
 		Path:   "/derivatives/api/v3/tickers",
 	})
+}
+
+type TickersSingleResult struct {
+	Data   TickerData `json:"ticker,omitempty"`
+	Errors []any      `json:"errors,omitempty"`
+	Error  any        `json:"error,omitempty"`
+	DerivativesResponse
 }
 
 // TickerSymbol retrieves the ticker information of a specific contract pair or indice.
@@ -192,6 +107,15 @@ func (r *REST) TickerSymbol(symbol string) (*Response[TickersSingleResult], erro
 	})
 }
 
+type OrderBookRequest struct {
+	Symbol string `json:"symbol,omitempty"`
+}
+
+type OrderBookResult struct {
+	OrderBook OrderBook `json:"orderBook,omitempty"`
+	DerivativesResponse
+}
+
 // OrderBook retrieves the top bid and ask records of a contract pair.
 //
 // https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook
@@ -201,6 +125,16 @@ func (r *REST) OrderBook(opts *OrderBookRequest) (*Response[OrderBookResult], er
 		Path:   []any{"/derivatives/api/v3/orderbook"},
 		Query:  opts,
 	})
+}
+
+type TradeHistoryRequest struct {
+	Symbol   string `json:"symbol,omitempty"`
+	LastTime string `json:"lastTime,omitempty"`
+}
+
+type TradeHistoryResult struct {
+	History []Trade `json:"history,omitempty"`
+	DerivativesResponse
 }
 
 // TradeHistory retrieves the most recent trade events in a futures market.
@@ -214,6 +148,11 @@ func (r *REST) TradeHistory(opts *TradeHistoryRequest) (*Response[TradeHistoryRe
 	})
 }
 
+type AccountsResult struct {
+	Accounts map[string]any `json:"accounts,omitempty"`
+	DerivativesResponse
+}
+
 // Accounts retrieves balances, margin requirements, margin trigger estimates, and other auxilary information of all futures cash and margin accounts.
 //
 // https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
@@ -223,6 +162,28 @@ func (r *REST) Accounts() (*Response[AccountsResult], error) {
 		Path:   "/derivatives/api/v3/accounts",
 		Auth:   true,
 	})
+}
+
+type OrderRequest struct {
+	ProcessBefore             time.Time `json:"processBefore,omitempty"`
+	OrderType                 string    `json:"orderType,omitempty"`
+	Symbol                    string    `json:"symbol,omitempty"`
+	Side                      string    `json:"side,omitempty"`
+	Size                      string    `json:"size,omitempty"`
+	LimitPrice                string    `json:"limitPrice,omitempty"`
+	StopPrice                 string    `json:"stopPrice,omitempty"`
+	ClientOrderID             string    `json:"cliOrdId,omitempty"`
+	TriggerSignal             string    `json:"triggerSignal,omitempty"`
+	ReduceOnly                bool      `json:"reduceOnly,omitempty"`
+	TrailingStopMaxDeviation  string    `json:"trailingStopMaxDeviation,omitempty"`
+	TrailingStopDeviationUnit string    `json:"trailingStopDeviationUnit,omitempty"`
+	LimitPriceOffsetValue     string    `json:"limitPriceOffsetValue,omitempty"`
+	LimitPriceOffsetUnit      string    `json:"limitPriceOffsetUnit,omitempty"`
+}
+
+type SendOrderResult struct {
+	SendStatus OrderStatus `json:"sendStatus,omitempty"`
+	DerivativesResponse
 }
 
 // SendOrder places a new order.
@@ -237,6 +198,16 @@ func (r *REST) SendOrder(opts *OrderRequest) (*Response[SendOrderResult], error)
 	})
 }
 
+type BatchOrderRequest struct {
+	ProcessBefore time.Time       `json:"processBefore,omitempty"`
+	JSON          *BatchOrderJson `json:"json,omitempty" map:"stringify"`
+}
+
+type BatchOrderResult struct {
+	BatchStatus []BatchStatusInfo `json:"batchStatus,omitempty"`
+	DerivativesResponse
+}
+
 // BatchOrder allows placing an order, cancelling an open order, or editing an existing order in a single request.
 //
 // https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
@@ -247,6 +218,11 @@ func (r *REST) BatchOrder(opts *BatchOrderRequest) (*Response[BatchOrderResult],
 		Body:   opts,
 		Auth:   true,
 	})
+}
+
+type EditOrderResult struct {
+	EditStatus OrderStatus
+	DerivativesResponse
 }
 
 // EditOrder edits an existing order.
@@ -261,6 +237,17 @@ func (r *REST) EditOrder(opts *OrderRequest) (*Response[EditOrderResult], error)
 	})
 }
 
+type CancelOrderRequest struct {
+	ProcessBefore time.Time `json:"processBefore,omitempty"`
+	OrderID       string    `json:"order_id,omitempty"`
+	ClientOrderID string    `json:"cliOrdId,omitempty"`
+}
+
+type CancelOrderResult struct {
+	CancelStatus OrderStatus `json:"cancelStatus,omitempty"`
+	DerivativesResponse
+}
+
 // CancelOrder cancels an open order.
 //
 // https://docs.kraken.com/api/docs/futures-api/trading/cancel-order
@@ -273,6 +260,15 @@ func (r *REST) CancelOrder(opts *CancelOrderRequest) (*Response[CancelOrderResul
 	})
 }
 
+type CancelAllRequest struct {
+	Symbol string `json:"symbol,omitempty"`
+}
+
+type CancelAllResult struct {
+	CancelStatus CancelStatus `json:"cancelStatus,omitempty"`
+	DerivativesResponse
+}
+
 // CancelAll cancels all open orders on a specific contract pair.
 //
 // https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
@@ -283,6 +279,11 @@ func (r *REST) CancelAll(opts *CancelAllRequest) (*Response[CancelAllResult], er
 		Body:   opts,
 		Auth:   true,
 	})
+}
+
+type OpenOrdersResult struct {
+	OpenOrders []OpenOrder `json:"openOrders,omitempty"`
+	DerivativesResponse
 }
 
 // OpenOrders retrieves information regarding all open orders on the futures account.

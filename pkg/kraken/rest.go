@@ -64,10 +64,10 @@ func NewRequestWithOptions(opts RequestOptions) (request *Request, err error) {
 		return request, fmt.Errorf("set URL: %w", err)
 	}
 	if opts.ContentType != "" {
-		request.SetHeader("Content-Type", opts.ContentType)
+		request.Header.Set("Content-Type", opts.ContentType)
 	}
 	if opts.UserAgent != "" {
-		request.SetHeader("User-Agent", opts.UserAgent)
+		request.Header.Set("User-Agent", opts.UserAgent)
 	}
 	request.SetHeaders(opts.Headers)
 	if opts.Method != "" {
@@ -250,7 +250,7 @@ func (r *Request) SetHeader(key string, value any) (err error) {
 // SetHeaders ranges over the hash map and calls [Request.SetHeader].
 func (r *Request) SetHeaders(h map[string]any) {
 	for k, v := range h {
-		r.SetHeader(k, v)
+		r.Header.Set(k, v)
 	}
 }
 
@@ -263,9 +263,9 @@ func (r *Request) SetBody(v any) error {
 	if err != nil {
 		return err
 	}
-	r.SetHeader("Content-Type", result.ContentType)
+	r.Header.Set("Content-Type", result.ContentType)
 	r.ContentLength = int64(len(result.Data))
-	r.Request.Body = CreateReadCloser(result.Data)
+	r.Body = CreateReadCloser(result.Data)
 	r.GetBody = func() (io.ReadCloser, error) { return CreateReadCloser(result.Data), nil }
 	return nil
 }

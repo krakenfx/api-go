@@ -363,14 +363,14 @@ func NewRequest(opts RequestOptions) (*kraken.Request, error) {
 			if nonce == "" {
 				nonce = opts.Nonce()
 			}
-			request.SetHeader("Nonce", nonce)
+			request.Header.Set("Nonce", nonce)
 		}
 		authent, err := Sign(opts.PrivateKey, data, nonce, request.URL.Path)
 		if err != nil {
 			return nil, fmt.Errorf("sign failed: %s", err)
 		}
-		request.SetHeader("APIKey", opts.PublicKey)
-		request.SetHeader("Authent", authent)
+		request.Header.Set("APIKey", opts.PublicKey)
+		request.Header.Set("Authent", authent)
 	}
 	return request, nil
 }

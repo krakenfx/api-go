@@ -660,12 +660,12 @@ func NewRequest(opts RequestOptions) (req *kraken.Request, err error) {
 			nonce = req.Header.Get("API-Nonce")
 			if nonce == "" {
 				nonce = opts.Nonce()
-				req.SetHeader("API-Nonce", nonce)
+				req.Header.Set("API-Nonce", nonce)
 			}
 			otp := req.Header.Get("API-OTP")
 			if otp == "" && opts.OTP != nil {
 				otp := opts.OTP()
-				req.SetHeader("API-OTP", otp)
+				req.Header.Set("API-OTP", otp)
 			}
 		}
 		var bodyReader io.ReadCloser
@@ -680,8 +680,8 @@ func NewRequest(opts RequestOptions) (req *kraken.Request, err error) {
 		if err != nil {
 			return req, fmt.Errorf("sign: %s", err)
 		}
-		req.SetHeader("API-Key", opts.PublicKey)
-		req.SetHeader("API-Sign", signature)
+		req.Header.Set("API-Key", opts.PublicKey)
+		req.Header.Set("API-Sign", signature)
 	}
 	return
 }

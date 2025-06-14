@@ -18,10 +18,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if len(response.OpenOrders) == 0 {
+	if len(response.Result.OpenOrders) == 0 {
 		fmt.Printf("No orders are open.\n")
 	}
-	for _, order := range response.OpenOrders {
+	for _, order := range response.Result.OpenOrders {
 		size := kraken.NewMoneyFromInt64(0)
 		if order.FilledSize != nil {
 			size = size.Add(order.FilledSize)

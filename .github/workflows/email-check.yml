@@ -18,7 +18,11 @@ jobs:
             COMMITS=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
           else
             # For push events, check the pushed commits
-            COMMITS=$(git rev-list ${{ github.event.before }}..${{ github.event.after }})
+            if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+              COMMITS=$(git rev-list ${{ github.event.after }})
+            else
+              COMMITS=$(git rev-list ${{ github.event.before }}..${{ github.event.after }})
+            fi
           fi
 
           # Initialize error flag

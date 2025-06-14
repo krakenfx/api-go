@@ -4,20 +4,17 @@ import (
 	"github.com/krakenfx/api-go/pkg/kraken"
 )
 
-// FullName contains the first, middle, and last name of the client.
 type FullName struct {
 	FirstName  string `json:"first_name,omitempty"`
 	MiddleName string `json:"middle_name,omitempty"`
 	LastName   string `json:"last_name,omitempty"`
 }
 
-// TaxID contains the tax identification string and issuing country.
 type TaxID struct {
 	ID             string `json:"id,omitempty"`
 	IssuingCountry string `json:"issuing_country,omitempty"`
 }
 
-// Residence contains the address of the client.
 type Residence struct {
 	Line1      string `json:"line1,omitempty"`
 	Line2      string `json:"line2,omitempty"`
@@ -27,7 +24,6 @@ type Residence struct {
 	Country    string `json:"country,omitempty"`
 }
 
-// UserInfo contains the profile of the client.
 type UserInfo struct {
 	Email              string     `json:"email,omitempty"`
 	ExternalID         string     `json:"external_id,omitempty"`
@@ -44,13 +40,11 @@ type UserInfo struct {
 	Language           string     `json:"language,omitempty"`
 }
 
-// ActionDetailsType contains the type and version of the [UserRequiredAction] object.
 type ActionDetailsType struct {
 	Type    string `json:"type,omitempty"`
 	Version int    `json:"version,omitempty"`
 }
 
-// UserRequiredAction contains information regarding a required action.
 type UserRequiredAction struct {
 	ActionType       string             `json:"action_type,omitempty"`
 	VerificationType string             `json:"verification_type,omitempty"`
@@ -60,20 +54,17 @@ type UserRequiredAction struct {
 	Deadline         *string            `json:"deadline,omitempty"`
 }
 
-// UserStatus contains the current status of the client.
 type UserStatus struct {
 	State           string                `json:"state,omitempty"`
 	Reasons         []string              `json:"reasons,omitempty"`
 	RequiredActions []*UserRequiredAction `json:"required_actions,omitempty"`
 }
 
-// Identity contains the full name and date of birth of the client.
 type Identity struct {
 	FullName    *FullName `json:"full_name,omitempty"`
 	DateOfBirth string    `json:"date_of_birth,omitempty"`
 }
 
-// Watchlist contains the details of a watchlist.
 type Watchlist struct {
 	Status                 string `json:"status,omitempty"`
 	Verifier               string `json:"verifier,omitempty"`
@@ -83,7 +74,6 @@ type Watchlist struct {
 	ExpirationDate         string `json:"expiration_date,omitempty"`
 }
 
-// VerificationMetadata contains metadata regarding a verification.
 type VerificationMetadata struct {
 	Identity               *Identity  `json:"identity,omitempty"`
 	Address                *Residence `json:"address,omitempty"`
@@ -258,4 +248,129 @@ type AssetTickerInfo struct {
 type OrderBook struct {
 	Asks []*kraken.Money `json:"asks,omitempty"`
 	Bids []*kraken.Money `json:"bids,omitempty"`
+}
+
+type DepositMethod struct {
+	Method        string        `json:"method,omitempty"`
+	Limit         *kraken.Money `json:"limit,omitempty"`
+	Fee           *kraken.Money `json:"fee,omitempty"`
+	FeePercentage *kraken.Money `json:"fee-percentage,omitempty"`
+	GenAddress    bool          `json:"gen-address,omitempty"`
+	Minimum       *kraken.Money `json:"minimum,omitempty"`
+}
+
+type DepositAddress struct {
+	Address  string `json:"address,omitempty"`
+	ExpireTM string `json:"expiretm,omitempty"`
+	New      bool   `json:"new,omitempty"`
+	Tag      string `json:"tag,omitempty"`
+}
+
+type DepositStatus struct {
+	Method      string   `json:"method,omitempty"`
+	Aclass      string   `json:"aclass,omitempty"`
+	Asset       string   `json:"asset,omitempty"`
+	Refid       string   `json:"refid,omitempty"`
+	Txid        string   `json:"txid,omitempty"`
+	Info        string   `json:"info,omitempty"`
+	Amount      string   `json:"amount,omitempty"`
+	Fee         string   `json:"fee,omitempty"`
+	Time        int64    `json:"time,omitempty"`
+	Status      string   `json:"status,omitempty"`
+	StatusProp  string   `json:"status-prop,omitempty"`
+	Originators []string `json:"originators,omitempty"`
+}
+
+type WithdrawMethod struct {
+	Asset   string        `json:"asset,omitempty"`
+	Method  string        `json:"method,omitempty"`
+	Network string        `json:"network,omitempty"`
+	Minimum *kraken.Money `json:"minimum,omitempty"`
+}
+
+type WithdrawAddress struct {
+	Address  string `json:"address,omitempty"`
+	Asset    string `json:"asset,omitempty"`
+	Method   string `json:"method,omitempty"`
+	Key      string `json:"key,omitempty"`
+	Tag      string `json:"tag,omitempty"`
+	Verified bool   `json:"verified,omitempty"`
+}
+
+type WithdrawInfo struct {
+	Method string        `json:"method,omitempty"`
+	Limit  *kraken.Money `json:"limit,omitempty"`
+	Amount *kraken.Money `json:"amount,omitempty"`
+	Fee    *kraken.Money `json:"fee,omitempty"`
+}
+
+type WithdrawStatus struct {
+	Method     string `json:"method,omitempty"`
+	Network    string `json:"network,omitempty"`
+	Aclass     string `json:"aclass,omitempty"`
+	Asset      string `json:"asset,omitempty"`
+	Refid      string `json:"refid,omitempty"`
+	Txid       string `json:"txid,omitempty"`
+	Info       string `json:"info,omitempty"`
+	Amount     string `json:"amount,omitempty"`
+	Fee        string `json:"fee,omitempty"`
+	Time       int64  `json:"time,omitempty"`
+	Status     string `json:"status,omitempty"`
+	StatusProp string `json:"status-prop,omitempty"`
+	Key        string `json:"key,omitempty"`
+}
+type EarnStrategyAPR struct {
+	Low  string `json:"low,omitempty"`
+	High string `json:"high,omitempty"`
+}
+type EarnStrategy struct {
+	ID                        string           `json:"id,omitempty"`
+	Asset                     string           `json:"asset,omitempty"`
+	LockType                  any              `json:"lock_type,omitempty"`
+	AprEstimate               *EarnStrategyAPR `json:"apr_estimate,omitempty"`
+	UserMinAllocation         string           `json:"user_min_allocation,omitempty"`
+	AllocationFee             any              `json:"allocation_fee,omitempty"`
+	DeallocationFee           any              `json:"deallocation_fee,omitempty"`
+	AutoCompound              any              `json:"auto_compound,omitempty"`
+	YieldSource               any              `json:"yield_source,omitempty"`
+	CanAllocate               bool             `json:"can_allocate,omitempty"`
+	CanDeallocate             bool             `json:"can_deallocate,omitempty"`
+	AllocationRestrictionInfo []string         `json:"allocation_restriction_info,omitempty"`
+}
+
+type EarnAllocationReward struct {
+	Native    string `json:"native"`
+	Converted string `json:"converted"`
+}
+type EarnAllocationAmountState struct {
+	Native          string                       `json:"native,omitempty"`
+	Converted       string                       `json:"converted,omitempty"`
+	AllocationCount int                          `json:"allocation_count,omitempty"`
+	Allocations     []*EarnAllocationStateDetail `json:"allocations,omitempty"`
+}
+type EarnAllocationStateDetail struct {
+	Native    string `json:"native,omitempty"`
+	Converted string `json:"converted,omitempty"`
+	CreatedAt string `json:"created_at,omitempty"`
+	Expires   string `json:"expires,omitempty"`
+}
+type EarnAllocationAmount struct {
+	Bonding   *EarnAllocationAmountState `json:"bonding,omitempty"`
+	ExitQueue *EarnAllocationAmountState `json:"exit_queue,omitempty"`
+	Pending   *EarnAllocationAmountState `json:"pending,omitempty"`
+	Total     *EarnAllocationAmountState `json:"total,omitempty"`
+	Unbonding *EarnAllocationAmountState `json:"unbonding,omitempty"`
+}
+type EarnAllocationPayout struct {
+	AccumulatedReward *EarnAllocationReward `json:"accumulated_reward,omitempty"`
+	EstimatedReward   *EarnAllocationReward `json:"estimated_reward,omitempty"`
+	PeriodStart       string                `json:"period_start,omitempty"`
+	PeriodEnd         string                `json:"period_end,omitempty"`
+}
+type EarnAllocation struct {
+	StrategyID      string                `json:"strategy_id,omitempty"`
+	NativeAsset     string                `json:"native_asset,omitempty"`
+	AmountAllocated EarnAllocationAmount  `json:"amount_allocated,omitempty"`
+	TotalRewarded   EarnAllocationReward  `json:"total_rewarded,omitempty"`
+	Payout          *EarnAllocationPayout `json:"payout,omitempty"`
 }

@@ -71,7 +71,7 @@ func main() {
 	fmt.Printf("> Sending batch order.\n")
 	resp, err := client.AddBatch(&spot.AddBatchRequest{
 		Orders: orderRequests,
-		Pair:   "BTC/USD",
+		Pair:   symbol,
 	})
 	if err != nil {
 		panic(err)

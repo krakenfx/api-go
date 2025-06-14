@@ -32,7 +32,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	price := ticker.Ticker.Bid.Add(ticker.Ticker.Ask).Div(kraken.NewMoneyFromInt64(2))
+	price := ticker.Result.Data.Bid.Add(ticker.Result.Data.Ask).Div(kraken.NewMoneyFromInt64(2))
 	fmt.Printf("Mid price: %s\n", price)
 	limitPrice := price.OffsetPercent(kraken.NewMoneyFromFloat64(-0.05))
 	limitPrice, err = asset.FormatPrice(contract, limitPrice)

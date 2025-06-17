@@ -96,6 +96,7 @@ func NewRequestWithOptions(opts RequestOptions) (request *Request, err error) {
 	return request, nil
 }
 
+// MustNewRequestWithOptions constructs a new [Request] with [RequestOptions]. Panics on error.
 func MustNewRequestWithOptions(opts RequestOptions) *Request {
 	return Must(NewRequestWithOptions(opts))
 }
@@ -127,7 +128,7 @@ func (r *Request) Do() (resp *Response, err error) {
 	return result, nil
 }
 
-// Do submits the request and returns a [Response]. Panics on error.
+// MustDo submits the request and returns a [Response]. Panics on error.
 func (r *Request) MustDo() *Response {
 	return Must(r.Do())
 }
@@ -275,10 +276,12 @@ func (r *Request) SetBody(v any) error {
 	return nil
 }
 
+// MustGetBody returns a copy of the body reader. Panics on error.
 func (r *Request) MustGetBody() io.ReadCloser {
 	return Must(r.GetBody())
 }
 
+// GetBodyBytes reads the body reader and returns the data.
 func (r *Request) GetBodyBytes() ([]byte, error) {
 	body, err := r.GetBody()
 	if err != nil {
@@ -287,6 +290,7 @@ func (r *Request) GetBodyBytes() ([]byte, error) {
 	return io.ReadAll(body)
 }
 
+// MustGetBodyBytes reads the body reader and returns the data. Panics on error.
 func (r *Request) MustGetBodyBytes() []byte {
 	return Must(r.GetBodyBytes())
 }

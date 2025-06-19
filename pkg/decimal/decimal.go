@@ -35,7 +35,7 @@ func NewFromString(s string) (*Decimal, error) {
 	}
 	if !useBigFloat {
 		d := new(Decimal)
-		d.increment = 1
+		d.increment = DefaultIncrement
 		if s == "" {
 			s = "0"
 		}
@@ -68,7 +68,7 @@ func NewFromString(s string) (*Decimal, error) {
 // NewFromBigInt creates a new [Decimal] object from a [big.Int].
 func NewFromBigInt(bi *big.Int) *Decimal {
 	m := new(Decimal)
-	m.increment = 1
+	m.increment = DefaultIncrement
 	m.integer = new(big.Int).Set(bi)
 	return m.SetScale(DefaultScale)
 }
@@ -76,7 +76,7 @@ func NewFromBigInt(bi *big.Int) *Decimal {
 // NewFromInt64 creates a new [Decimal] object from an int64.
 func NewFromInt64(i int64) *Decimal {
 	m := new(Decimal)
-	m.increment = 1
+	m.increment = DefaultIncrement
 	m.integer = new(big.Int).SetInt64(i)
 	return m.SetScale(DefaultScale)
 }
@@ -89,7 +89,7 @@ func NewFromBigFloat(f *big.Float) *Decimal {
 	}
 	multiplicand := new(big.Float).SetFloat64(math.Pow10(numDecimals))
 	m := new(Decimal)
-	m.increment = 1
+	m.increment = DefaultIncrement
 	m.integer, _ = new(big.Float).Mul(f, multiplicand).Int(nil)
 	m.scale = int64(numDecimals)
 	return m

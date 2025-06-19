@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/internal/helper"
+	"github.com/krakenfx/api-go/pkg/decimal"
 	"github.com/krakenfx/api-go/pkg/spot"
 )
 
@@ -18,7 +19,7 @@ var direction = "buy"
 var priceOffsets = []float64{-0.5, -0.25}
 
 // Notional size of each order.
-var notionalSize = kraken.NewMoneyFromFloat64(5.0)
+var notionalSize = decimal.NewFromFloat64(5.0)
 
 func main() {
 	client := spot.NewREST()
@@ -26,7 +27,7 @@ func main() {
 	client.PublicKey = os.Getenv("KRAKEN_API_SPOT_PUBLIC")
 	client.PrivateKey = os.Getenv("KRAKEN_API_SPOT_SECRET")
 
-	assets := spot.NewAssetManager()
+	assets := spot.NewNormalizer()
 	if err := assets.Use(client); err != nil {
 		panic(err)
 	}
@@ -36,7 +37,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	var marketPrice *kraken.Money
+	var marketPrice *decimal.Decimal
 	switch direction {
 	case "buy":
 		marketPrice = ticker.Ask[0]
@@ -49,7 +50,7 @@ func main() {
 	fmt.Printf("Market price: %s\n", marketPrice)
 	var orderRequests []*spot.OrderRequest
 	for _, priceOffset := range priceOffsets {
-		limitPrice := marketPrice.OffsetPercent(kraken.NewMoneyFromFloat64(priceOffset))
+		limitPrice := marketPrice.OffsetPercent(decimal.NewFromFloat64(priceOffset))
 		limitPrice, err := assets.FormatPrice(symbol, limitPrice)
 		if err != nil {
 			panic(err)
@@ -66,7 +67,7 @@ func main() {
 			Volume:    volume.String(),
 		}
 		orderRequests = append(orderRequests, order)
-		fmt.Printf("%s\n", kraken.ToJSON(order))
+		fmt.Printf("%s\n", helper.ToJSON(order))
 	}
 	fmt.Printf("> Sending batch order.\n")
 	resp, err := client.AddBatch(&spot.AddBatchRequest{

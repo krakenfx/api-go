@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/krakenfx/api-go/pkg/decimal"
 	"github.com/krakenfx/api-go/pkg/derivatives"
-	"github.com/krakenfx/api-go/pkg/kraken"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 		fmt.Printf("No orders are open.\n")
 	}
 	for _, order := range response.Result.OpenOrders {
-		size := kraken.NewMoneyFromInt64(0)
+		size := decimal.NewFromInt64(0)
 		if order.FilledSize != nil {
 			size = size.Add(order.FilledSize)
 		}

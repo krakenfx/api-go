@@ -1,4 +1,4 @@
-package kraken
+package helper
 
 import (
 	"bytes"
@@ -9,15 +9,15 @@ import (
 	"reflect"
 )
 
-// MultipartForm is a combined representation of [bytes.Buffer] and [multipart.Writer].
-type MultipartForm struct {
+// Form is a combined representation of [bytes.Buffer] and [multipart.Writer].
+type Form struct {
 	*bytes.Buffer
 	*multipart.Writer
 }
 
-// CreateMultipartForm constructs a [MultipartForm] from the given map[string]any.
+// NewForm constructs a [Form] from the given map[string]any.
 // See [AddFormField] for accepted values.
-func CreateMultipartForm(m map[string]any) (*MultipartForm, error) {
+func NewForm(m map[string]any) (*Form, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	for k, v := range m {
@@ -28,7 +28,7 @@ func CreateMultipartForm(m map[string]any) (*MultipartForm, error) {
 	if err := writer.Close(); err != nil {
 		return nil, fmt.Errorf("close multipart writer: %s", err)
 	}
-	return &MultipartForm{
+	return &Form{
 		Buffer: body,
 		Writer: writer,
 	}, nil
@@ -89,9 +89,4 @@ func AddFormField(writer *multipart.Writer, parent string, child string, v any) 
 		return fmt.Errorf("unsupported data type %s for key %s", reflect.TypeOf(v), key)
 	}
 	return nil
-}
-
-// CreateReadCloser constructs an [io.ReadCloser] from a byte slice.
-func CreateReadCloser(b []byte) io.ReadCloser {
-	return io.NopCloser(bytes.NewReader(b))
 }

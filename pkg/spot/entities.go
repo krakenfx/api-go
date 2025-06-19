@@ -1,8 +1,6 @@
 package spot
 
-import (
-	"github.com/krakenfx/api-go/pkg/kraken"
-)
+import "github.com/krakenfx/api-go/pkg/decimal"
 
 type FullName struct {
 	FirstName  string `json:"first_name,omitempty"`
@@ -93,30 +91,30 @@ type VerificationMetadata struct {
 }
 
 type Trade struct {
-	OrderID        string        `json:"ordertxid,omitempty"`
-	PositionID     string        `json:"postxid,omitempty"`
-	Pair           string        `json:"pair,omitempty"`
-	Time           *kraken.Money `json:"time,omitempty"`
-	Type           string        `json:"type,omitempty"`
-	OrderType      string        `json:"ordertype,omitempty"`
-	Price          *kraken.Money `json:"price,omitempty"`
-	Cost           *kraken.Money `json:"cost,omitempty"`
-	Fee            *kraken.Money `json:"fee,omitempty"`
-	Volume         *kraken.Money `json:"vol,omitempty"`
-	Margin         *kraken.Money `json:"margin,omitempty"`
-	Leverage       *kraken.Money `json:"leverage,omitempty"`
-	Misc           string        `json:"misc,omitempty"`
-	Ledgers        []string      `json:"ledgers,omitempty"`
-	TradeID        *kraken.Money `json:"trade_id,omitempty"`
-	Maker          bool          `json:"maker,omitempty"`
-	PositionStatus string        `json:"posstatus,omitempty"`
-	CPrice         *kraken.Money `json:"cprice,omitempty"`
-	CCost          *kraken.Money `json:"ccost,omitempty"`
-	CFee           *kraken.Money `json:"cfee,omitempty"`
-	CVol           *kraken.Money `json:"cvol,omitempty"`
-	CMargin        *kraken.Money `json:"cmargin,omitempty"`
-	Net            *kraken.Money `json:"net,omitempty"`
-	Trades         []string      `json:"trades,omitempty"`
+	OrderID        string           `json:"ordertxid,omitempty"`
+	PositionID     string           `json:"postxid,omitempty"`
+	Pair           string           `json:"pair,omitempty"`
+	Time           *decimal.Decimal `json:"time,omitempty"`
+	Type           string           `json:"type,omitempty"`
+	OrderType      string           `json:"ordertype,omitempty"`
+	Price          *decimal.Decimal `json:"price,omitempty"`
+	Cost           *decimal.Decimal `json:"cost,omitempty"`
+	Fee            *decimal.Decimal `json:"fee,omitempty"`
+	Volume         *decimal.Decimal `json:"vol,omitempty"`
+	Margin         *decimal.Decimal `json:"margin,omitempty"`
+	Leverage       *decimal.Decimal `json:"leverage,omitempty"`
+	Misc           string           `json:"misc,omitempty"`
+	Ledgers        []string         `json:"ledgers,omitempty"`
+	TradeID        *decimal.Decimal `json:"trade_id,omitempty"`
+	Maker          bool             `json:"maker,omitempty"`
+	PositionStatus string           `json:"posstatus,omitempty"`
+	CPrice         *decimal.Decimal `json:"cprice,omitempty"`
+	CCost          *decimal.Decimal `json:"ccost,omitempty"`
+	CFee           *decimal.Decimal `json:"cfee,omitempty"`
+	CVol           *decimal.Decimal `json:"cvol,omitempty"`
+	CMargin        *decimal.Decimal `json:"cmargin,omitempty"`
+	Net            *decimal.Decimal `json:"net,omitempty"`
+	Trades         []string         `json:"trades,omitempty"`
 }
 
 type OrderDescriptionInfo struct {
@@ -129,31 +127,31 @@ type OrderDescriptionInfoWithClose struct {
 }
 
 type OrderDescription struct {
-	Pair           string        `json:"pair,omitempty"`
-	Type           string        `json:"type,omitempty"`
-	OrderType      string        `json:"ordertype,omitempty"`
-	Price          *kraken.Money `json:"price,omitempty"`
-	SecondaryPrice *kraken.Money `json:"price2,omitempty"`
-	Leverage       string        `json:"leverage,omitempty"`
+	Pair           string           `json:"pair,omitempty"`
+	Type           string           `json:"type,omitempty"`
+	OrderType      string           `json:"ordertype,omitempty"`
+	Price          *decimal.Decimal `json:"price,omitempty"`
+	SecondaryPrice *decimal.Decimal `json:"price2,omitempty"`
+	Leverage       string           `json:"leverage,omitempty"`
 	OrderDescriptionInfoWithClose
 }
 
 type Order struct {
 	RefID          string            `json:"refid,omitempty"`
-	UserRef        *kraken.Money     `json:"userref,omitempty"`
+	UserRef        *decimal.Decimal  `json:"userref,omitempty"`
 	ClOrdID        string            `json:"cl_ord_id,omitempty"`
 	Status         string            `json:"status,omitempty"`
-	OpenTm         *kraken.Money     `json:"opentm,omitempty"`
-	StartTm        *kraken.Money     `json:"starttm,omitempty"`
-	ExpireTm       *kraken.Money     `json:"expiretm,omitempty"`
+	OpenTm         *decimal.Decimal  `json:"opentm,omitempty"`
+	StartTm        *decimal.Decimal  `json:"starttm,omitempty"`
+	ExpireTm       *decimal.Decimal  `json:"expiretm,omitempty"`
 	Description    *OrderDescription `json:"descr,omitempty"`
-	Volume         *kraken.Money     `json:"vol,omitempty"`
-	VolumeExecuted *kraken.Money     `json:"vol_exec,omitempty"`
-	Cost           *kraken.Money     `json:"cost,omitempty"`
-	Fee            *kraken.Money     `json:"fee,omitempty"`
-	Price          *kraken.Money     `json:"price,omitempty"`
-	StopPrice      *kraken.Money     `json:"stopprice,omitempty"`
-	LimitPrice     *kraken.Money     `json:"limitprice,omitempty"`
+	Volume         *decimal.Decimal  `json:"vol,omitempty"`
+	VolumeExecuted *decimal.Decimal  `json:"vol_exec,omitempty"`
+	Cost           *decimal.Decimal  `json:"cost,omitempty"`
+	Fee            *decimal.Decimal  `json:"fee,omitempty"`
+	Price          *decimal.Decimal  `json:"price,omitempty"`
+	StopPrice      *decimal.Decimal  `json:"stopprice,omitempty"`
+	LimitPrice     *decimal.Decimal  `json:"limitprice,omitempty"`
 	Trigger        string            `json:"trigger,omitempty"`
 	Margin         bool              `json:"margin,omitempty"`
 	Misc           string            `json:"misc,omitempty"`
@@ -163,8 +161,8 @@ type Order struct {
 }
 
 type ClosedOrder struct {
-	CloseTm *kraken.Money `json:"closetm,omitempty"`
-	Reason  string        `json:"reason,omitempty"`
+	CloseTm *decimal.Decimal `json:"closetm,omitempty"`
+	Reason  string           `json:"reason,omitempty"`
 	*Order
 }
 
@@ -199,64 +197,64 @@ type OrderPlacementBatch struct {
 }
 
 type AssetInfo struct {
-	AssetClass      string        `json:"aclass,omitempty"`
-	AltName         string        `json:"altname,omitempty"`
-	Decimals        int           `json:"decimals,omitempty"`
-	DisplayDecimals int           `json:"display_decimals,omitempty"`
-	CollateralValue *kraken.Money `json:"collateral_value,omitempty"`
-	Status          string        `json:"status,omitempty"`
+	AssetClass      string           `json:"aclass,omitempty"`
+	AltName         string           `json:"altname,omitempty"`
+	Decimals        int              `json:"decimals,omitempty"`
+	DisplayDecimals int              `json:"display_decimals,omitempty"`
+	CollateralValue *decimal.Decimal `json:"collateral_value,omitempty"`
+	Status          string           `json:"status,omitempty"`
 }
 
 type AssetPair struct {
-	AltName            string            `json:"altname,omitempty"`
-	WSName             string            `json:"wsname,omitempty"`
-	BaseAssetClass     string            `json:"aclass_base,omitempty"`
-	Base               string            `json:"base,omitempty"`
-	QuoteAssetClass    string            `json:"aclass_quote,omitempty"`
-	Quote              string            `json:"quote,omitempty"`
-	PairDecimals       int               `json:"pair_decimals,omitempty"`
-	CostDecimals       int               `json:"cost_decimals,omitempty"`
-	LotDecimals        int               `json:"lot_decimals,omitempty"`
-	LotMultiplier      int               `json:"lot_multiplier,omitempty"`
-	BuyLeverage        []int             `json:"leverage_buy,omitempty"`
-	SellLeverage       []int             `json:"leverage_sell,omitempty"`
-	Fees               [][]*kraken.Money `json:"fees,omitempty"`
-	FeesMaker          [][]*kraken.Money `json:"fees_maker,omitempty"`
-	FeeVolumeCurrency  string            `json:"fee_volume_currency,omitempty"`
-	MarginCall         int               `json:"margin_call,omitempty"`
-	MarginStop         int               `json:"margin_stop,omitempty"`
-	OrderMinimum       *kraken.Money     `json:"ordermin,omitempty"`
-	CostMinimum        *kraken.Money     `json:"costmin,omitempty"`
-	TickSize           *kraken.Money     `json:"tick_size,omitempty"`
-	Status             string            `json:"status,omitempty"`
-	LongPositionLimit  int               `json:"long_position_limit,omitempty"`
-	ShortPositionLimit int               `json:"short_position_limit,omitempty"`
+	AltName            string               `json:"altname,omitempty"`
+	WSName             string               `json:"wsname,omitempty"`
+	BaseAssetClass     string               `json:"aclass_base,omitempty"`
+	Base               string               `json:"base,omitempty"`
+	QuoteAssetClass    string               `json:"aclass_quote,omitempty"`
+	Quote              string               `json:"quote,omitempty"`
+	PairDecimals       int                  `json:"pair_decimals,omitempty"`
+	CostDecimals       int                  `json:"cost_decimals,omitempty"`
+	LotDecimals        int                  `json:"lot_decimals,omitempty"`
+	LotMultiplier      int                  `json:"lot_multiplier,omitempty"`
+	BuyLeverage        []int                `json:"leverage_buy,omitempty"`
+	SellLeverage       []int                `json:"leverage_sell,omitempty"`
+	Fees               [][]*decimal.Decimal `json:"fees,omitempty"`
+	FeesMaker          [][]*decimal.Decimal `json:"fees_maker,omitempty"`
+	FeeVolumeCurrency  string               `json:"fee_volume_currency,omitempty"`
+	MarginCall         int                  `json:"margin_call,omitempty"`
+	MarginStop         int                  `json:"margin_stop,omitempty"`
+	OrderMinimum       *decimal.Decimal     `json:"ordermin,omitempty"`
+	CostMinimum        *decimal.Decimal     `json:"costmin,omitempty"`
+	TickSize           *decimal.Decimal     `json:"tick_size,omitempty"`
+	Status             string               `json:"status,omitempty"`
+	LongPositionLimit  int                  `json:"long_position_limit,omitempty"`
+	ShortPositionLimit int                  `json:"short_position_limit,omitempty"`
 }
 
 type AssetTickerInfo struct {
-	Ask    []*kraken.Money `json:"a,omitempty"`
-	Bid    []*kraken.Money `json:"b,omitempty"`
-	Close  []*kraken.Money `json:"c,omitempty"`
-	Volume []*kraken.Money `json:"v,omitempty"`
-	VWAP   []*kraken.Money `json:"p,omitempty"`
-	Trades []int           `json:"t,omitempty"`
-	Low    []*kraken.Money `json:"l,omitempty"`
-	High   []*kraken.Money `json:"h,omitempty"`
-	Open   *kraken.Money   `json:"o,omitempty"`
+	Ask    []*decimal.Decimal `json:"a,omitempty"`
+	Bid    []*decimal.Decimal `json:"b,omitempty"`
+	Close  []*decimal.Decimal `json:"c,omitempty"`
+	Volume []*decimal.Decimal `json:"v,omitempty"`
+	VWAP   []*decimal.Decimal `json:"p,omitempty"`
+	Trades []int              `json:"t,omitempty"`
+	Low    []*decimal.Decimal `json:"l,omitempty"`
+	High   []*decimal.Decimal `json:"h,omitempty"`
+	Open   *decimal.Decimal   `json:"o,omitempty"`
 }
 
 type OrderBook struct {
-	Asks []*kraken.Money `json:"asks,omitempty"`
-	Bids []*kraken.Money `json:"bids,omitempty"`
+	Asks []*decimal.Decimal `json:"asks,omitempty"`
+	Bids []*decimal.Decimal `json:"bids,omitempty"`
 }
 
 type DepositMethod struct {
-	Method        string        `json:"method,omitempty"`
-	Limit         *kraken.Money `json:"limit,omitempty"`
-	Fee           *kraken.Money `json:"fee,omitempty"`
-	FeePercentage *kraken.Money `json:"fee-percentage,omitempty"`
-	GenAddress    bool          `json:"gen-address,omitempty"`
-	Minimum       *kraken.Money `json:"minimum,omitempty"`
+	Method        string           `json:"method,omitempty"`
+	Limit         *decimal.Decimal `json:"limit,omitempty"`
+	Fee           *decimal.Decimal `json:"fee,omitempty"`
+	FeePercentage *decimal.Decimal `json:"fee-percentage,omitempty"`
+	GenAddress    bool             `json:"gen-address,omitempty"`
+	Minimum       *decimal.Decimal `json:"minimum,omitempty"`
 }
 
 type DepositAddress struct {
@@ -282,10 +280,10 @@ type DepositStatus struct {
 }
 
 type WithdrawMethod struct {
-	Asset   string        `json:"asset,omitempty"`
-	Method  string        `json:"method,omitempty"`
-	Network string        `json:"network,omitempty"`
-	Minimum *kraken.Money `json:"minimum,omitempty"`
+	Asset   string           `json:"asset,omitempty"`
+	Method  string           `json:"method,omitempty"`
+	Network string           `json:"network,omitempty"`
+	Minimum *decimal.Decimal `json:"minimum,omitempty"`
 }
 
 type WithdrawAddress struct {
@@ -298,10 +296,10 @@ type WithdrawAddress struct {
 }
 
 type WithdrawInfo struct {
-	Method string        `json:"method,omitempty"`
-	Limit  *kraken.Money `json:"limit,omitempty"`
-	Amount *kraken.Money `json:"amount,omitempty"`
-	Fee    *kraken.Money `json:"fee,omitempty"`
+	Method string           `json:"method,omitempty"`
+	Limit  *decimal.Decimal `json:"limit,omitempty"`
+	Amount *decimal.Decimal `json:"amount,omitempty"`
+	Fee    *decimal.Decimal `json:"fee,omitempty"`
 }
 
 type WithdrawStatus struct {

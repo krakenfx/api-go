@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/krakenfx/api-go/internal/helper"
 	"github.com/krakenfx/api-go/pkg/kraken"
 )
 
@@ -384,7 +385,7 @@ func Sign(privateKey string, data io.Reader, nonce string, endpointPath string) 
 		return "", fmt.Errorf("copy data to hash: %w", err)
 	}
 	sha256Hash.Write([]byte(nonce + strings.TrimPrefix(endpointPath, "/derivatives")))
-	return kraken.Sign(privateKey, sha256Hash.Sum(nil))
+	return helper.Sign(privateKey, sha256Hash.Sum(nil))
 }
 
 type Response[T any] struct {

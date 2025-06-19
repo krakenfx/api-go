@@ -282,7 +282,7 @@ func (d *Decimal) SetIncrement(increment int64) *Decimal {
 	return result.RoundToGranularity()
 }
 
-// SetSize ensures the the value is always a multiple of the specified.
+// SetSize ensures the value of d is always a multiple of the specified.
 func (d *Decimal) SetSize(size *Decimal) *Decimal {
 	return d.
 		SetScale(size.scale).

@@ -125,7 +125,7 @@ func (d *Decimal) SetScale(scale int64) *Decimal {
 	if diff > 0 {
 		result.integer.Mul(d.integer, factor)
 	} else {
-		result.bankersRound(factor)
+		result.integer = result.rounding(result.integer, factor)
 	}
 	result.roundToGranularity()
 	return result
@@ -217,7 +217,7 @@ func (x *Decimal) Mul(y *Decimal) *Decimal {
 	result := x.Copy()
 	result.integer.Mul(x.integer, y.SetScale(x.scale).integer)
 	scale := x.ScalingFactor()
-	result.bankersRound(scale)
+	result.integer = result.rounding(result.integer, scale)
 	result.roundToGranularity()
 	return result
 }
@@ -230,7 +230,7 @@ func (x *Decimal) Div(y *Decimal) *Decimal {
 	}
 	scale := x.ScalingFactor()
 	result.integer.Mul(result.integer, scale)
-	result.bankersRound(y.SetScale(x.scale).integer)
+	result.integer = result.rounding(result.integer, y.SetScale(x.scale).integer)
 	result.roundToGranularity()
 	return result
 }
@@ -288,25 +288,6 @@ func (d *Decimal) SetSize(size *Decimal) *Decimal {
 	return d.
 		SetScale(size.scale).
 		SetIncrement(size.integer.Int64())
-}
-
-func (d *Decimal) bankersRound(scale *big.Int) {
-	quotient, remainder := new(big.Int).QuoRem(d.integer, scale, new(big.Int))
-	half := new(big.Int).Div(scale, big.NewInt(2))
-	cmp := remainder.Cmp(half)
-	switch {
-	case cmp > 0:
-		// remainder > half: round up
-		quotient.Add(quotient, big.NewInt(1))
-	case cmp < 0:
-		// remainder < half: round down (already done)
-	default:
-		// remainder == half: round to even
-		if quotient.Bit(0) == 1 { // odd
-			quotient.Add(quotient, big.NewInt(1))
-		}
-	}
-	d.integer = quotient
 }
 
 // roundToGranularity returns the rounding of m to the granularity constraint.

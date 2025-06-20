@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/krakenfx/api-go/internal/helper"
+	"github.com/krakenfx/api-go/v2/internal/helper"
 )
 
 // Request is a wrapper around [http.Request] to assist with internal functions.

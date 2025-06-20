@@ -1,6 +1,6 @@
 package spot
 
-import "github.com/krakenfx/api-go/pkg/decimal"
+import "github.com/krakenfx/api-go/v2/pkg/decimal"
 
 type FullName struct {
 	FirstName  string `json:"first_name,omitempty"`

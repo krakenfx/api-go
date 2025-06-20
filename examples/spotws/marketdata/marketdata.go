@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/krakenfx/api-go/pkg/callback"
-	"github.com/krakenfx/api-go/pkg/kraken"
-	"github.com/krakenfx/api-go/pkg/spot"
+	"github.com/krakenfx/api-go/v2/pkg/callback"
+	"github.com/krakenfx/api-go/v2/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/pkg/spot"
 )
 
 func main() {

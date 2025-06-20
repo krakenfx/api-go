@@ -9,9 +9,9 @@ import (
 	"maps"
 	"reflect"
 
-	"github.com/krakenfx/api-go/internal/helper"
-	"github.com/krakenfx/api-go/pkg/decimal"
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/kraken"
 )
 
 // REST wraps [RESTBase] with functions to call common endpoints.

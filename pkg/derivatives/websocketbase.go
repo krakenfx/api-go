@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/krakenfx/api-go/internal/helper"
-	"github.com/krakenfx/api-go/pkg/callback"
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/callback"
+	"github.com/krakenfx/api-go/v2/pkg/kraken"
 )
 
 // WebSocketBase is the underlying of the [WebSocket] client.

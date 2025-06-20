@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/krakenfx/api-go/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
 	"golang.org/x/sync/errgroup"
 )
 

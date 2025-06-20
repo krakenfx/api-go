@@ -4,8 +4,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/krakenfx/api-go/pkg/callback"
-	"github.com/krakenfx/api-go/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/callback"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
 )
 
 // Order book structure for L2 and L3.

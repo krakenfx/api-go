@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/internal/helper"
-	"github.com/krakenfx/api-go/pkg/decimal"
-	"github.com/krakenfx/api-go/pkg/derivatives"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
 // Derivative contract.

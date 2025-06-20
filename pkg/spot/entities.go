@@ -244,8 +244,8 @@ type AssetTickerInfo struct {
 }
 
 type OrderBook struct {
-	Asks []*decimal.Decimal `json:"asks,omitempty"`
-	Bids []*decimal.Decimal `json:"bids,omitempty"`
+	Asks [][]*decimal.Decimal `json:"asks,omitempty"`
+	Bids [][]*decimal.Decimal `json:"bids,omitempty"`
 }
 
 type DepositMethod struct {

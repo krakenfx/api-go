@@ -1,4 +1,4 @@
-package kraken
+package helper
 
 import (
 	"encoding/json"

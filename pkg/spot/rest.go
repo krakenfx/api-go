@@ -9,6 +9,8 @@ import (
 	"maps"
 	"reflect"
 
+	"github.com/krakenfx/api-go/internal/helper"
+	"github.com/krakenfx/api-go/pkg/decimal"
 	"github.com/krakenfx/api-go/pkg/kraken"
 )
 
@@ -156,17 +158,22 @@ type VerificationRequestQuery struct {
 	User string `json:"user,omitempty"`
 }
 
+type MultipartFile interface {
+	Name() string
+	io.ReadCloser
+}
+
 type VerificationRequestBody struct {
-	Type                       string                               `json:"type,omitempty"`
-	Metadata                   *VerificationMetadata                `json:"metadata,omitempty" map:"stringify"`
-	SanctionsVendorResponse    string                               `json:"sanctions_vendor_response,omitempty"`
-	NegativeNewsVendorResponse string                               `json:"negative_news_vendor_response,omitempty"`
-	PepVendorResponse          string                               `json:"pep_vendor_response,omitempty"`
-	Selfie                     func() (kraken.MultipartFile, error) `json:"selfie,omitempty"`
-	VendorResponse             func() (kraken.MultipartFile, error) `json:"vendor_response,omitempty"`
-	Document                   func() (kraken.MultipartFile, error) `json:"document,omitempty"`
-	Front                      func() (kraken.MultipartFile, error) `json:"front,omitempty"`
-	Back                       func() (kraken.MultipartFile, error) `json:"back,omitempty"`
+	Type                       string                        `json:"type,omitempty"`
+	Metadata                   *VerificationMetadata         `json:"metadata,omitempty" map:"stringify"`
+	SanctionsVendorResponse    string                        `json:"sanctions_vendor_response,omitempty"`
+	NegativeNewsVendorResponse string                        `json:"negative_news_vendor_response,omitempty"`
+	PepVendorResponse          string                        `json:"pep_vendor_response,omitempty"`
+	Selfie                     func() (MultipartFile, error) `json:"selfie,omitempty"`
+	VendorResponse             func() (MultipartFile, error) `json:"vendor_response,omitempty"`
+	Document                   func() (MultipartFile, error) `json:"document,omitempty"`
+	Front                      func() (MultipartFile, error) `json:"front,omitempty"`
+	Back                       func() (MultipartFile, error) `json:"back,omitempty"`
 }
 
 type SubmitVerificationRequest struct {
@@ -196,8 +203,8 @@ func (r *REST) VerifyUser(opts *SubmitVerificationRequest) (*Response[SubmitVeri
 // Balances retrieves the balances on the spot wallet.
 //
 // https://docs.kraken.com/api/docs/rest-api/get-account-balance
-func (r *REST) Balances() (*Response[map[string]*kraken.Money], error) {
-	return Call[map[string]*kraken.Money](r, RequestOptions{
+func (r *REST) Balances() (*Response[map[string]*decimal.Decimal], error) {
+	return Call[map[string]*decimal.Decimal](r, RequestOptions{
 		Auth:   true,
 		Method: "POST",
 		Path:   "/0/private/Balance",
@@ -963,9 +970,9 @@ type RequestOptions struct {
 func NewRequest(opts RequestOptions) (req *kraken.Request, err error) {
 	body := make(map[string]any)
 	if opts.Body != nil {
-		bodyReflection := kraken.GetDirectReflection(opts.Body)
+		bodyReflection := helper.GetDirectReflection(opts.Body)
 		if bodyReflection.Type.Kind() == reflect.Struct {
-			body, err = kraken.StructToMap(opts.Body)
+			body, err = helper.StructToMap(opts.Body)
 			if err != nil {
 				return req, fmt.Errorf("body struct to map: %w", err)
 			}
@@ -1068,5 +1075,5 @@ func Sign(privateKey string, path string, nonce string, body io.ReadCloser) (str
 		}
 	}
 	message := path + string(sha256Hash.Sum(nil))
-	return kraken.Sign(privateKey, []byte(message))
+	return helper.Sign(privateKey, []byte(message))
 }

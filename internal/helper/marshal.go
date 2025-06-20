@@ -1,8 +1,10 @@
-package kraken
+package helper
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"reflect"
 )
 
@@ -46,7 +48,7 @@ func Marshal(opts MarshalOptions) (result MarshalResult, err error) {
 		if !ok {
 			return result, fmt.Errorf("MarshalOptions.Object must be map[string]any")
 		}
-		form, err := CreateMultipartForm(m)
+		form, err := NewForm(m)
 		if err != nil {
 			return result, err
 		}
@@ -72,4 +74,9 @@ func Marshal(opts MarshalOptions) (result MarshalResult, err error) {
 		}
 	}
 	return
+}
+
+// CreateReadCloser constructs an [io.ReadCloser] from a byte slice.
+func CreateReadCloser(b []byte) io.ReadCloser {
+	return io.NopCloser(bytes.NewReader(b))
 }

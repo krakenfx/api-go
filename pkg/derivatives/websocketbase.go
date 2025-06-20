@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/krakenfx/api-go/internal/helper"
+	"github.com/krakenfx/api-go/pkg/callback"
 	"github.com/krakenfx/api-go/pkg/kraken"
 )
 
@@ -15,7 +17,7 @@ type WebSocketBase struct {
 	PrivateKey          string
 	Challenge           string
 	Signature           string
-	OnAuthenticated     *kraken.CallbackManager[string]
+	OnAuthenticated     *callback.Manager[string]
 	*kraken.WebSocket
 }
 
@@ -24,7 +26,7 @@ func NewWebSocketBase() *WebSocketBase {
 	b := &WebSocketBase{
 		AuthenticateTimeout: 15 * time.Second,
 		WebSocket:           kraken.NewWebSocket(),
-		OnAuthenticated:     kraken.NewCallbackManager[string](),
+		OnAuthenticated:     callback.NewManager[string](),
 	}
 	b.URL = "wss://futures.kraken.com/ws/v1"
 	return b
@@ -42,14 +44,14 @@ func (b *WebSocketBase) Authenticate() error {
 	}
 	var mainErr error
 	threadStarted := time.Now()
-	b.OnReceived.SleepUntilDisabled(func(e *kraken.Event[*kraken.WebSocketMessage]) {
+	b.OnReceived.SleepUntilDisabled(func(e *callback.Event[*kraken.WebSocketMessage]) {
 		dataMap, err := e.Data.Map()
 		if err != nil {
 			e.Callback.Enabled = false
 			mainErr = err
 			return
 		}
-		if event, err := kraken.Traverse[string](dataMap, "event"); err != nil || *event != "challenge" {
+		if event, err := helper.Traverse[string](dataMap, "event"); err != nil || *event != "challenge" {
 			if time.Now().After(threadStarted.Add(b.AuthenticateTimeout)) {
 				e.Callback.Enabled = false
 				mainErr = fmt.Errorf("authentication timed out")
@@ -58,7 +60,7 @@ func (b *WebSocketBase) Authenticate() error {
 			return
 		}
 		e.Callback.Enabled = false
-		message, err := kraken.Traverse[string](dataMap, "message")
+		message, err := helper.Traverse[string](dataMap, "message")
 		if err != nil {
 			mainErr = err
 			return
@@ -70,7 +72,7 @@ func (b *WebSocketBase) Authenticate() error {
 	}
 	sha256Hash := sha256.New()
 	sha256Hash.Write([]byte(b.Challenge))
-	signature, err := kraken.Sign(b.PrivateKey, sha256Hash.Sum(nil))
+	signature, err := helper.Sign(b.PrivateKey, sha256Hash.Sum(nil))
 	if err != nil {
 		return fmt.Errorf("sign challenge failed: %s", err)
 	}
@@ -81,7 +83,7 @@ func (b *WebSocketBase) Authenticate() error {
 
 // SendPrivate sends a JSON-encoded map with the authentication fields included.
 func (b *WebSocketBase) SendPrivate(m map[string]any) error {
-	return b.WriteJSON(kraken.Maps(map[string]any{
+	return b.WriteJSON(helper.Maps(map[string]any{
 		"api_key":            b.PublicKey,
 		"original_challenge": b.Challenge,
 		"signed_challenge":   b.Signature,
@@ -90,7 +92,7 @@ func (b *WebSocketBase) SendPrivate(m map[string]any) error {
 
 // SubPublic submits a subscription request.
 func (b *WebSocket) SubPublic(feed string, options ...map[string]any) error {
-	return b.WriteJSON(kraken.Maps(map[string]any{
+	return b.WriteJSON(helper.Maps(map[string]any{
 		"event": "subscribe",
 		"feed":  feed,
 	}, options...))
@@ -98,7 +100,7 @@ func (b *WebSocket) SubPublic(feed string, options ...map[string]any) error {
 
 // SubPrivate submits a subscription request with the authentication fields included.
 func (b *WebSocket) SubPrivate(feed string, options ...map[string]any) error {
-	return b.SendPrivate(kraken.Maps(map[string]any{
+	return b.SendPrivate(helper.Maps(map[string]any{
 		"event": "subscribe",
 		"feed":  feed,
 	}, options...))

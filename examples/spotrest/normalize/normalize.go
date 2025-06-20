@@ -10,7 +10,7 @@ import (
 func main() {
 	client := spot.NewREST()
 	client.BaseURL = os.Getenv("KRAKEN_API_SPOT_REST_URL")
-	assetManager := spot.NewAssetManager()
+	assetManager := spot.NewNormalizer()
 	if err := assetManager.Use(client); err != nil {
 		panic(err)
 	}

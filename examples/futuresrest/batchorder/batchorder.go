@@ -5,21 +5,22 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/krakenfx/api-go/internal/helper"
+	"github.com/krakenfx/api-go/pkg/decimal"
 	"github.com/krakenfx/api-go/pkg/derivatives"
-	"github.com/krakenfx/api-go/pkg/kraken"
 )
 
 // Derivative contract.
 var contract = "PF_XBTUSD"
 
 // Notional size.
-var notionalSize = kraken.NewMoneyFromFloat64(10)
+var notionalSize = decimal.NewFromFloat64(10)
 
 // Side
 var side = "buy"
 
 // Offset from market price in percentage.
-var priceOffset = kraken.NewMoneyFromFloat64(-0.5)
+var priceOffset = decimal.NewFromFloat64(-0.5)
 
 func main() {
 	client := derivatives.NewREST()
@@ -27,7 +28,7 @@ func main() {
 	client.PublicKey = os.Getenv("KRAKEN_API_FUTURES_PUBLIC")
 	client.PrivateKey = os.Getenv("KRAKEN_API_FUTURES_SECRET")
 
-	asset := derivatives.NewAssetManager()
+	asset := derivatives.NewNormalizer()
 	if err := asset.Use(client); err != nil {
 		panic(err)
 	}
@@ -37,7 +38,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	price := ticker.Result.Data.Bid.Add(ticker.Result.Data.Ask).Div(kraken.NewMoneyFromInt64(2))
+	price := ticker.Result.Data.Bid.Add(ticker.Result.Data.Ask).Div(decimal.NewFromInt64(2))
 	fmt.Printf("Mid price: %s\n", price)
 
 	limitPrice := price.OffsetPercent(priceOffset)
@@ -53,7 +54,7 @@ func main() {
 	size = size.Div(limitPrice)
 	fmt.Printf("Size: %s\n", size)
 
-	clientOrderID := kraken.UUID()
+	clientOrderID := helper.UUID()
 	fmt.Printf("Client order ID: %s\n", clientOrderID)
 
 	fmt.Printf("> Sending batch order request\n")
@@ -80,5 +81,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Response: %s\n", kraken.ToJSONIndent(response))
+	fmt.Printf("Response: %s\n", helper.ToJSONIndent(response))
 }

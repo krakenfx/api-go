@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/krakenfx/api-go/internal/helper"
+	"github.com/krakenfx/api-go/pkg/decimal"
 	"github.com/krakenfx/api-go/pkg/derivatives"
-	"github.com/krakenfx/api-go/pkg/kraken"
 )
 
 // Derivative contract.
@@ -15,14 +16,14 @@ var contract = "PI_XBTUSD"
 var side = "buy"
 
 // Size of the order in quote unit.
-var notionalSize = kraken.NewMoneyFromFloat64(5)
+var notionalSize = decimal.NewFromFloat64(5)
 
 func main() {
 	client := derivatives.NewREST()
 	client.BaseURL = os.Getenv("KRAKEN_API_FUTURES_REST_URL")
 	client.PublicKey = os.Getenv("KRAKEN_API_FUTURES_PUBLIC")
 	client.PrivateKey = os.Getenv("KRAKEN_API_FUTURES_SECRET")
-	asset := derivatives.NewAssetManager()
+	asset := derivatives.NewNormalizer()
 	if err := asset.Use(client); err != nil {
 		panic(err)
 	}
@@ -32,9 +33,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	price := ticker.Result.Data.Bid.Add(ticker.Result.Data.Ask).Div(kraken.NewMoneyFromInt64(2))
+	price := ticker.Result.Data.Bid.Add(ticker.Result.Data.Ask).Div(decimal.NewFromInt64(2))
 	fmt.Printf("Mid price: %s\n", price)
-	limitPrice := price.OffsetPercent(kraken.NewMoneyFromFloat64(-0.05))
+	limitPrice := price.OffsetPercent(decimal.NewFromFloat64(-0.05))
 	limitPrice, err = asset.FormatPrice(contract, limitPrice)
 	if err != nil {
 		panic(err)
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	fmt.Printf("> Submit send order request\n")
-	cliOrdID := kraken.UUID()
+	cliOrdID := helper.UUID()
 	response, err := client.SendOrder(&derivatives.OrderRequest{
 		OrderType:     "lmt",
 		Symbol:        contract,
@@ -58,10 +59,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Response: %s\n", kraken.ToJSON(response))
+	fmt.Printf("Response: %s\n", helper.ToJSON(response))
 
 	fmt.Printf("> Set limit price to -10 ticks away from the original limit price\n")
-	limitPrice = limitPrice.OffsetTicks(kraken.NewMoneyFromInt64(-10))
+	limitPrice = limitPrice.OffsetTicks(decimal.NewFromInt64(-10))
 	fmt.Printf("Limit price: %s\n", limitPrice)
 
 	fmt.Printf("> Submit edit order request\n")
@@ -72,7 +73,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Response: %s\n", kraken.ToJSON(editOrderResponse))
+	fmt.Printf("Response: %s\n", helper.ToJSON(editOrderResponse))
 
 	fmt.Printf("> Sending cancel order request\n")
 	cancelOrderResponse, err := client.CancelOrder(&derivatives.CancelOrderRequest{
@@ -81,5 +82,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Response: %s\n", kraken.ToJSON(cancelOrderResponse))
+	fmt.Printf("Response: %s\n", helper.ToJSON(cancelOrderResponse))
 }

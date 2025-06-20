@@ -6,22 +6,22 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/pkg/decimal"
 	"golang.org/x/sync/errgroup"
 )
 
-// AssetManager provides helper methods for a group of [AssetInfo] objects.
-type AssetManager struct {
+// Normalizer provides helper methods for a group of [AssetInfo] objects.
+type Normalizer struct {
 	aliases map[string]*AssetName
 	assets  map[*AssetName]AssetInfo
 	pairs   map[*AssetName]map[*AssetName]AssetPair
 	mux     sync.RWMutex
 }
 
-// NewAssetManager constructs a new [AssetManager] object.
-// The map will need to be initialized with [AssetManager.Use] or [AssetManager.Update].
-func NewAssetManager() *AssetManager {
-	return &AssetManager{
+// NewNormalizer constructs a new [Normalizer] object.
+// The map will need to be initialized with [Normalizer.Use] or [Normalizer.Update].
+func NewNormalizer() *Normalizer {
+	return &Normalizer{
 		aliases: make(map[string]*AssetName),
 		assets:  make(map[*AssetName]AssetInfo),
 		pairs:   make(map[*AssetName]map[*AssetName]AssetPair),
@@ -36,7 +36,7 @@ type AssetName struct {
 }
 
 // Use retrieves asset specifications using the specified [REST] structure.
-func (m *AssetManager) Use(r *REST) error {
+func (m *Normalizer) Use(r *REST) error {
 	update := &AssetsManagerUpdate{}
 	var wg errgroup.Group
 	wg.Go(func() error {
@@ -90,7 +90,7 @@ type AssetsManagerUpdate struct {
 }
 
 // Update creates an alias map out of the old and new [AssetInfo] map.
-func (m *AssetManager) Update(update *AssetsManagerUpdate) {
+func (m *Normalizer) Update(update *AssetsManagerUpdate) {
 	aliases := make(map[string]*AssetName)
 	info := make(map[*AssetName]AssetInfo)
 	pairs := make(map[*AssetName]map[*AssetName]AssetPair)
@@ -163,14 +163,14 @@ func (m *AssetManager) Update(update *AssetsManagerUpdate) {
 }
 
 // Map returns a group of [AssetInfo] structs mapped to their [AssetName].
-func (m *AssetManager) Map() map[*AssetName]AssetInfo {
+func (m *Normalizer) Map() map[*AssetName]AssetInfo {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	return maps.Clone(m.assets)
 }
 
 // AssetName returns the matching [AssetName]. If not found, returns false.
-func (m *AssetManager) AssetName(name string) (*AssetName, bool) {
+func (m *Normalizer) AssetName(name string) (*AssetName, bool) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	assetName, ok := m.aliases[strings.ToUpper(name)]
@@ -181,7 +181,7 @@ func (m *AssetManager) AssetName(name string) (*AssetName, bool) {
 }
 
 // PairName returns the two [AssetName] structures corresponding to the name. If not found, returns false.
-func (m *AssetManager) PairName(name string) (*AssetName, *AssetName, bool) {
+func (m *Normalizer) PairName(name string) (*AssetName, *AssetName, bool) {
 	base, quote, found := strings.Cut(name, "/")
 	if found {
 		baseName, found := m.AssetName(base)
@@ -208,7 +208,7 @@ func (m *AssetManager) PairName(name string) (*AssetName, *AssetName, bool) {
 }
 
 // Name returns the standard asset or pair name.
-func (m *AssetManager) Name(name string) string {
+func (m *Normalizer) Name(name string) string {
 	if asset, found := m.AssetName(name); found {
 		return asset.Name
 	} else if base, quote, found := m.PairName(name); found {
@@ -219,7 +219,7 @@ func (m *AssetManager) Name(name string) string {
 }
 
 // AssetInfo returns the [AssetInfo] struct corresponding to the name.
-func (m *AssetManager) AssetInfo(name string) (*AssetInfo, error) {
+func (m *Normalizer) AssetInfo(name string) (*AssetInfo, error) {
 	asset, found := m.AssetName(name)
 	if !found {
 		return nil, fmt.Errorf("not found")
@@ -231,7 +231,7 @@ func (m *AssetManager) AssetInfo(name string) (*AssetInfo, error) {
 }
 
 // PairInfo returns the [AssetPair] struct corresponding to the symbol.
-func (m *AssetManager) PairInfo(symbol string) (*AssetPair, error) {
+func (m *Normalizer) PairInfo(symbol string) (*AssetPair, error) {
 	base, quote, found := m.PairName(symbol)
 	if !found {
 		return nil, fmt.Errorf("name not found")
@@ -250,41 +250,41 @@ func (m *AssetManager) PairInfo(symbol string) (*AssetPair, error) {
 }
 
 // FormatDecimals sets the decimals by the decimal property of the symbol.
-func (m *AssetManager) FormatDecimals(symbol string, v *kraken.Money) (*kraken.Money, error) {
+func (m *Normalizer) FormatDecimals(symbol string, v *decimal.Decimal) (*decimal.Decimal, error) {
 	info, err := m.AssetInfo(symbol)
 	if err != nil {
 		return nil, err
 	}
-	return v.SetDecimals(int64(info.Decimals)), nil
+	return v.SetScale(int64(info.Decimals)), nil
 }
 
 // FormatDisplayDecimals sets the decimals by the display decimals property of the symbol.
-func (m *AssetManager) FormatDisplayDecimals(symbol string, v *kraken.Money) (*kraken.Money, error) {
+func (m *Normalizer) FormatDisplayDecimals(symbol string, v *decimal.Decimal) (*decimal.Decimal, error) {
 	info, err := m.AssetInfo(symbol)
 	if err != nil {
 		return nil, err
 	}
-	return v.SetDecimals(int64(info.DisplayDecimals)), nil
+	return v.SetScale(int64(info.DisplayDecimals)), nil
 }
 
 // FormatPrice sets the decimals to the tick size of the asset pair.
-func (m *AssetManager) FormatPrice(pair string, v *kraken.Money) (*kraken.Money, error) {
+func (m *Normalizer) FormatPrice(pair string, v *decimal.Decimal) (*decimal.Decimal, error) {
 	info, err := m.PairInfo(pair)
 	if err != nil {
 		return nil, err
 	}
 	return v.
 		SetSize(info.TickSize).
-		SetDecimals(int64(info.PairDecimals)), nil
+		SetScale(int64(info.PairDecimals)), nil
 }
 
 // FormatSize sets the decimals to the lot size of the asset pair.
-func (m *AssetManager) FormatSize(pair string, v *kraken.Money) (*kraken.Money, error) {
+func (m *Normalizer) FormatSize(pair string, v *decimal.Decimal) (*decimal.Decimal, error) {
 	info, err := m.PairInfo(pair)
 	if err != nil {
 		return nil, err
 	}
 	return v.
-		SetDecimals(int64(info.LotDecimals)).
-		SetGranularity(int64(info.LotMultiplier)), nil
+		SetScale(int64(info.LotDecimals)).
+		SetIncrement(int64(info.LotMultiplier)), nil
 }

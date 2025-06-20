@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/krakenfx/api-go/pkg/callback"
 )
 
 // WebSocket implements a common structure for the WebSocket APIs.
@@ -19,10 +20,10 @@ type WebSocket struct {
 	ReconnectWait time.Duration
 	DoReconnect   bool
 
-	OnConnected    *CallbackManager[any]
-	OnDisconnected *CallbackManager[error]
-	OnSent         *CallbackManager[*WebSocketMessage]
-	OnReceived     *CallbackManager[*WebSocketMessage]
+	OnConnected    *callback.Manager[any]
+	OnDisconnected *callback.Manager[error]
+	OnSent         *callback.Manager[*WebSocketMessage]
+	OnReceived     *callback.Manager[*WebSocketMessage]
 
 	conn     *websocket.Conn
 	URL      string
@@ -35,10 +36,10 @@ type WebSocket struct {
 func NewWebSocket() *WebSocket {
 	ws := &WebSocket{
 		ReconnectWait:  2 * time.Second,
-		OnConnected:    NewCallbackManager[any](),
-		OnDisconnected: NewCallbackManager[error](),
-		OnSent:         NewCallbackManager[*WebSocketMessage](),
-		OnReceived:     NewCallbackManager[*WebSocketMessage](),
+		OnConnected:    callback.NewManager[any](),
+		OnDisconnected: callback.NewManager[error](),
+		OnSent:         callback.NewManager[*WebSocketMessage](),
+		OnReceived:     callback.NewManager[*WebSocketMessage](),
 	}
 	ws.Reconnect = func() {
 		for {
@@ -48,7 +49,7 @@ func NewWebSocket() *WebSocket {
 			time.Sleep(ws.ReconnectWait)
 		}
 	}
-	ws.OnDisconnected.Recurring(func(e *Event[error]) {
+	ws.OnDisconnected.Recurring(func(e *callback.Event[error]) {
 		if ws.Reconnect != nil && !websocket.IsCloseError(e.Data, websocket.CloseNormalClosure) && ws.DoReconnect {
 			ws.Reconnect()
 		}
@@ -148,7 +149,7 @@ func (ws *WebSocket) Disconnect() error {
 	defer func() {
 		_ = ws.conn.Close()
 	}()
-	callback := ws.OnDisconnected.Recurring(func(e *Event[error]) {
+	callback := ws.OnDisconnected.Recurring(func(e *callback.Event[error]) {
 		done <- true
 	})
 	message := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")

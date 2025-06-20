@@ -1,7 +1,7 @@
 package spot
 
 import (
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/internal/helper"
 )
 
 // WebSocket wraps a [WebSocketBase] struct with order management and subscription request functions.
@@ -93,7 +93,7 @@ func (s *WebSocket) SubInstruments(options ...map[string]any) error {
 //
 // https://docs.kraken.com/api/docs/websocket-v2/add_order
 func (s *WebSocket) AddOrder(orderType string, side string, quantity float64, symbol string, options ...map[string]any) error {
-	return s.SendPrivate(kraken.Maps(map[string]any{
+	return s.SendPrivate(helper.Maps(map[string]any{
 		"method": "add_order",
 		"params": map[string]any{
 			"order_type": orderType,
@@ -109,7 +109,7 @@ func (s *WebSocket) AddOrder(orderType string, side string, quantity float64, sy
 //
 // https://docs.kraken.com/api/docs/websocket-v2/amend_order
 func (s *WebSocket) AmendOrder(options ...map[string]any) error {
-	return s.SendPrivate(kraken.Maps(map[string]any{
+	return s.SendPrivate(helper.Maps(map[string]any{
 		"method": "amend_order",
 	}, options...))
 }
@@ -118,7 +118,7 @@ func (s *WebSocket) AmendOrder(options ...map[string]any) error {
 //
 // https://docs.kraken.com/api/docs/websocket-v2/cancel_all
 func (s *WebSocket) CancelAllOrders(options ...map[string]any) error {
-	return s.SendPrivate(kraken.Maps(map[string]any{
+	return s.SendPrivate(helper.Maps(map[string]any{
 		"method": "cancel_all",
 	}, options...))
 }
@@ -127,7 +127,7 @@ func (s *WebSocket) CancelAllOrders(options ...map[string]any) error {
 //
 // https://docs.kraken.com/api/docs/websocket-v2/cancel_order
 func (s *WebSocket) CancelOrder(options ...map[string]any) error {
-	return s.SendPrivate(kraken.Maps(map[string]any{
+	return s.SendPrivate(helper.Maps(map[string]any{
 		"method": "cancel_order",
 	}, options...))
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/internal/helper"
 	"github.com/krakenfx/api-go/pkg/spot"
 )
 
@@ -24,5 +24,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Withdraw methods: %s\n", kraken.ToJSONIndent(withdrawMethods))
+	fmt.Printf("Withdraw methods: %s\n", helper.ToJSONIndent(withdrawMethods))
 }

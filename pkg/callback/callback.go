@@ -1,68 +1,68 @@
-package kraken
+package callback
 
 import (
 	"maps"
 	"sync"
 )
 
-// CallbackManager manages the lifecycle of a collection of generic [Callback] structs.
-type CallbackManager[T any] struct {
+// Manager manages the lifecycle of a collection of generic [Callback] structs.
+type Manager[T any] struct {
 	callbacks map[*Callback[T]]bool
 	mux       sync.RWMutex
 }
 
-// NewCallbackManager constructs a new [CallbackManager] structs.
-func NewCallbackManager[T any]() *CallbackManager[T] {
-	return &CallbackManager[T]{
+// NewManager constructs a new [Manager] structs.
+func NewManager[T any]() *Manager[T] {
+	return &Manager[T]{
 		callbacks: make(map[*Callback[T]]bool),
 	}
 }
 
 // Register adds a [Callback] struct to the map.
-func (cg *CallbackManager[T]) Register(c *Callback[T]) *Callback[T] {
-	cg.mux.Lock()
-	defer cg.mux.Unlock()
-	cg.callbacks[c] = true
+func (m *Manager[T]) Register(c *Callback[T]) *Callback[T] {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	m.callbacks[c] = true
 	return c
 }
 
 // Reregister removes a [Callback] struct from the map.
-func (cg *CallbackManager[T]) Deregister(c *Callback[T]) *Callback[T] {
-	cg.mux.Lock()
-	defer cg.mux.Unlock()
-	delete(cg.callbacks, c)
+func (m *Manager[T]) Deregister(c *Callback[T]) *Callback[T] {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	delete(m.callbacks, c)
 	return c
 }
 
 // Reset clears all [Callback] struct from the map.
-func (cg *CallbackManager[T]) Reset() {
-	cg.mux.Lock()
-	defer cg.mux.Unlock()
-	cg.callbacks = make(map[*Callback[T]]bool)
+func (m *Manager[T]) Reset() {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	m.callbacks = make(map[*Callback[T]]bool)
 }
 
 type Action[T any] func(*Event[T])
 
 // Recurring adds a recurring [Callback] struct to the map.
-func (cg *CallbackManager[T]) Recurring(action Action[T]) *Callback[T] {
-	return cg.Register(&Callback[T]{
+func (m *Manager[T]) Recurring(action Action[T]) *Callback[T] {
+	return m.Register(&Callback[T]{
 		Action:  action,
 		Enabled: true,
 	})
 }
 
 // Once adds a [Callback] to the map that is deregistered after first execution.
-func (cg *CallbackManager[T]) Once(action Action[T]) *Callback[T] {
+func (m *Manager[T]) Once(action Action[T]) *Callback[T] {
 	callback := &Callback[T]{Enabled: true}
 	callback.Action = func(e *Event[T]) {
 		action(e)
 		callback.Enabled = false
 	}
-	return cg.Register(callback)
+	return m.Register(callback)
 }
 
 // SleepUntilDisabled adds a [Callback] struct to the map and pauses the current goroutine until the callback is disabled.
-func (cg *CallbackManager[T]) SleepUntilDisabled(action Action[T]) *Callback[T] {
+func (m *Manager[T]) SleepUntilDisabled(action Action[T]) *Callback[T] {
 	callback := &Callback[T]{Enabled: true}
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -74,33 +74,33 @@ func (cg *CallbackManager[T]) SleepUntilDisabled(action Action[T]) *Callback[T] 
 			}
 		}()
 	}
-	cg.Register(callback)
+	m.Register(callback)
 	wg.Wait()
 	return callback
 }
 
 // Map returns a clone of the internal [Callback] map.
-func (cg *CallbackManager[T]) Map() map[*Callback[T]]bool {
-	cg.mux.RLock()
-	defer cg.mux.RUnlock()
-	return maps.Clone(cg.callbacks)
+func (m *Manager[T]) Map() map[*Callback[T]]bool {
+	m.mux.RLock()
+	defer m.mux.RUnlock()
+	return maps.Clone(m.callbacks)
 }
 
 // Call fans out [Event] objects across all callbacks in the map.
-func (cg *CallbackManager[T]) Call(v T) {
-	callbacks := cg.Map()
+func (m *Manager[T]) Call(v T) {
+	callbacks := m.Map()
 	for callback := range callbacks {
 		if callback.Enabled {
 			callback.Call(v)
 		}
 	}
-	cg.mux.Lock()
+	m.mux.Lock()
 	for callback := range callbacks {
 		if !callback.Enabled {
-			delete(cg.callbacks, callback)
+			delete(m.callbacks, callback)
 		}
 	}
-	cg.mux.Unlock()
+	m.mux.Unlock()
 }
 
 // Callback contains the function reference and parameters.

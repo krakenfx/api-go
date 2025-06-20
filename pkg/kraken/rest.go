@@ -7,8 +7,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strings"
+
+	"github.com/krakenfx/api-go/internal/helper"
 )
 
 // Request is a wrapper around [http.Request] to assist with internal functions.
@@ -98,7 +99,7 @@ func NewRequestWithOptions(opts RequestOptions) (request *Request, err error) {
 
 // MustNewRequestWithOptions constructs a new [Request] with [RequestOptions]. Panics on error.
 func MustNewRequestWithOptions(opts RequestOptions) *Request {
-	return Must(NewRequestWithOptions(opts))
+	return helper.Must(NewRequestWithOptions(opts))
 }
 
 // ExecutorFunction takes a [http.Request] and returns a [http.Response].
@@ -130,7 +131,7 @@ func (r *Request) Do() (resp *Response, err error) {
 
 // MustDo submits the request and returns a [Response]. Panics on error.
 func (r *Request) MustDo() *Response {
-	return Must(r.Do())
+	return helper.Must(r.Do())
 }
 
 // GetMediaType retrieves the Content-Type header without additional parameters.
@@ -156,7 +157,7 @@ func (r *Request) SetURL(base string) error {
 
 // SetPath sets the URL path to p.
 func (r *Request) SetPath(p any) error {
-	path, err := StringSlice(p)
+	path, err := helper.StringSlice(p)
 	if err != nil {
 		return err
 	}
@@ -180,63 +181,9 @@ func (r *Request) JoinPath(p string) error {
 	return nil
 }
 
-// StringSlice takes a value of type any and converts them into a string slice.
-func StringSlice(v any) (slice []string, err error) {
-	switch v := v.(type) {
-	case string:
-		slice = []string{v}
-	case []string:
-		slice = v
-	case []any:
-		for _, item := range v {
-			strings, err := StringSlice(item)
-			if err != nil {
-				return slice, err
-			}
-			slice = append(slice, strings...)
-		}
-	default:
-		s, err := json.Marshal(v)
-		if err != nil {
-			return slice, fmt.Errorf("json marshal v of type %s: %w", reflect.TypeOf(v).Name(), err)
-		}
-		slice = []string{string(s)}
-	}
-	return
-}
-
-// MustStringSlice takes a value of type any and converts them into a string slice. Panics on error.
-func MustStringSlice(v any) []string {
-	return Must(StringSlice(v))
-}
-
-// ToURLValues converts v into [url.Values].
-func ToURLValues(val any) (values url.Values, err error) {
-	values = make(url.Values)
-	if GetDirectReflection(val).Type.Kind() == reflect.Struct {
-		val, err = StructToMap(val)
-		if err != nil {
-			return values, fmt.Errorf("struct to map: %w", err)
-		}
-	}
-	switch m := val.(type) {
-	case map[string]any:
-		for k, v := range m {
-			values[k], err = StringSlice(v)
-			if err != nil {
-				return values, fmt.Errorf("string slice: %w", err)
-			}
-		}
-	case url.Values:
-		values = m
-		return values, fmt.Errorf("invalid type v of %s", reflect.TypeOf(val))
-	}
-	return
-}
-
 // SetQuery converts a map[string]any into a [url.Values] object and sets it as the URL query.
 func (r *Request) SetQuery(q any) error {
-	query, err := ToURLValues(q)
+	query, err := helper.ToURLValues(q)
 	if err != nil {
 		return err
 	}
@@ -246,7 +193,7 @@ func (r *Request) SetQuery(q any) error {
 
 // SetHeader sets the value of a header field.
 func (r *Request) SetHeader(key string, value any) (err error) {
-	r.Header[key], err = StringSlice(value)
+	r.Header[key], err = helper.StringSlice(value)
 	return
 }
 
@@ -262,7 +209,7 @@ func (r *Request) SetHeaders(h map[string]any) error {
 
 // SetBody sets the request body based on the media type.
 func (r *Request) SetBody(v any) error {
-	result, err := Marshal(MarshalOptions{
+	result, err := helper.Marshal(helper.MarshalOptions{
 		MediaType: r.GetMediaType(),
 		Object:    v,
 	})
@@ -271,14 +218,14 @@ func (r *Request) SetBody(v any) error {
 	}
 	r.Header.Set("Content-Type", result.ContentType)
 	r.ContentLength = int64(len(result.Data))
-	r.Body = CreateReadCloser(result.Data)
-	r.GetBody = func() (io.ReadCloser, error) { return CreateReadCloser(result.Data), nil }
+	r.Body = helper.CreateReadCloser(result.Data)
+	r.GetBody = func() (io.ReadCloser, error) { return helper.CreateReadCloser(result.Data), nil }
 	return nil
 }
 
 // MustGetBody returns a copy of the body reader. Panics on error.
 func (r *Request) MustGetBody() io.ReadCloser {
-	return Must(r.GetBody())
+	return helper.Must(r.GetBody())
 }
 
 // GetBodyBytes reads the body reader and returns the data.
@@ -292,7 +239,7 @@ func (r *Request) GetBodyBytes() ([]byte, error) {
 
 // MustGetBodyBytes reads the body reader and returns the data. Panics on error.
 func (r *Request) MustGetBodyBytes() []byte {
-	return Must(r.GetBodyBytes())
+	return helper.Must(r.GetBodyBytes())
 }
 
 // Response is a wrapper around [http.Response] with a read body.

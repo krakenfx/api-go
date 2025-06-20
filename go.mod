@@ -1,4 +1,4 @@
-module github.com/krakenfx/api-go
+module github.com/krakenfx/api-go/v2
 
 go 1.23.2
 

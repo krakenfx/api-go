@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/derivatives"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
 func main() {

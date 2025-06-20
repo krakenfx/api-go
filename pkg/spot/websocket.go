@@ -1,7 +1,7 @@
 package spot
 
 import (
-	"github.com/krakenfx/api-go/internal/helper"
+	"github.com/krakenfx/api-go/v2/internal/helper"
 )
 
 // WebSocket wraps a [WebSocketBase] struct with order management and subscription request functions.

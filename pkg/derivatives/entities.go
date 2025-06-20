@@ -3,7 +3,7 @@ package derivatives
 import (
 	"time"
 
-	"github.com/krakenfx/api-go/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
 )
 
 type MarginSchedule struct {

@@ -3,7 +3,7 @@ package book
 import (
 	"sync"
 
-	"github.com/krakenfx/api-go/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
 )
 
 // Side encompasses the price levels in one side of the book.

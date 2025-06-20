@@ -321,19 +321,40 @@ type EarnStrategyAPR struct {
 	Low  string `json:"low,omitempty"`
 	High string `json:"high,omitempty"`
 }
+type EarnStrategyLockType struct {
+	Type                    string           `json:"type,omitempty"`
+	BondingPeriod           *decimal.Decimal `json:"bonding_period,omitempty"`
+	BondingPeriodVariable   bool             `json:"bonding_period_variable,omitempty"`
+	BondingRewards          bool             `json:"bonding_rewards,omitempty"`
+	ExitQueuePeriod         *decimal.Decimal `json:"exit_queue_period"`
+	PayoutFrequency         *decimal.Decimal `json:"payout_frequency,omitempty"`
+	UnbondingPeriod         *decimal.Decimal `json:"unbonding_period,omitempty"`
+	UnbondingPeriodVariable bool             `json:"unbonding_period_variable,omitempty"`
+	UnbondingRewards        bool             `json:"unbonding_rewards,omitempty"`
+}
+
+type EarnStrategyYieldSource struct {
+	Type string `json:"type,omitempty"`
+}
+
+type EarnStrategyAutoCompound struct {
+	Type    string `json:"type,omitempty"`
+	Default bool   `json:"default,omitempty"`
+}
+
 type EarnStrategy struct {
-	ID                        string           `json:"id,omitempty"`
-	Asset                     string           `json:"asset,omitempty"`
-	LockType                  any              `json:"lock_type,omitempty"`
-	AprEstimate               *EarnStrategyAPR `json:"apr_estimate,omitempty"`
-	UserMinAllocation         string           `json:"user_min_allocation,omitempty"`
-	AllocationFee             any              `json:"allocation_fee,omitempty"`
-	DeallocationFee           any              `json:"deallocation_fee,omitempty"`
-	AutoCompound              any              `json:"auto_compound,omitempty"`
-	YieldSource               any              `json:"yield_source,omitempty"`
-	CanAllocate               bool             `json:"can_allocate,omitempty"`
-	CanDeallocate             bool             `json:"can_deallocate,omitempty"`
-	AllocationRestrictionInfo []string         `json:"allocation_restriction_info,omitempty"`
+	ID                        string                   `json:"id,omitempty"`
+	Asset                     string                   `json:"asset,omitempty"`
+	LockType                  EarnStrategyLockType     `json:"lock_type,omitempty"`
+	AprEstimate               *EarnStrategyAPR         `json:"apr_estimate,omitempty"`
+	UserMinAllocation         string                   `json:"user_min_allocation,omitempty"`
+	AllocationFee             *decimal.Decimal         `json:"allocation_fee,omitempty"`
+	DeallocationFee           *decimal.Decimal         `json:"deallocation_fee,omitempty"`
+	AutoCompound              EarnStrategyAutoCompound `json:"auto_compound,omitempty"`
+	YieldSource               EarnStrategyYieldSource  `json:"yield_source,omitempty"`
+	CanAllocate               bool                     `json:"can_allocate,omitempty"`
+	CanDeallocate             bool                     `json:"can_deallocate,omitempty"`
+	AllocationRestrictionInfo []string                 `json:"allocation_restriction_info,omitempty"`
 }
 
 type EarnAllocationReward struct {

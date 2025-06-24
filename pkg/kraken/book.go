@@ -36,7 +36,6 @@ type Book struct {
 	OnBookCrossed      *CallbackManager[*BookCrossedResult]
 	OnMaxDepthExceeded *CallbackManager[*MaxDepthExceededResult]
 	OnChecksummed      *CallbackManager[*ChecksumResult]
-	mux                sync.RWMutex
 }
 
 // NewBook constructs a new [Book] struct with default values.
@@ -60,7 +59,7 @@ func NewBook() *Book {
 
 // Midpoint returns the midpoint of the order book.
 func (b *Book) Midpoint() *Money {
-	bid, ask := b.bestBid(), b.bestAsk()
+	bid, ask := b.BestBid(), b.BestAsk()
 	switch {
 	case bid != nil && ask != nil:
 		return bid.Price.
@@ -77,7 +76,7 @@ func (b *Book) Midpoint() *Money {
 
 // Spread returns the relative difference between the bid-ask price.
 func (b *Book) Spread() *Money {
-	bid, ask := b.bestBid(), b.BestAsk()
+	bid, ask := b.BestBid(), b.BestAsk()
 	switch {
 	case bid == nil || ask == nil:
 		return NewMoneyFromInt64(0)
@@ -108,13 +107,7 @@ type BookUpdateOptions struct {
 }
 
 // Update routes the [BookUpdateOptions] to the correct side of the book and enforces checks to preserve book integrity.
-func (b *Book) Update(input *BookUpdateOptions) {
-	b.mux.Lock()
-	defer b.mux.Unlock()
-	b.update(input)
-}
-
-func (b *Book) update(opts *BookUpdateOptions) {
+func (b *Book) Update(opts *BookUpdateOptions) {
 	switch opts.Direction {
 	case Ask:
 		b.Asks.Update(opts)
@@ -122,63 +115,32 @@ func (b *Book) update(opts *BookUpdateOptions) {
 		b.Bids.Update(opts)
 	}
 	if b.NoBookCrossing {
-		b.enforceOrder()
+		b.EnforceOrder()
 	}
 	if b.EnableMaxDepth {
-		b.enforceDepth()
+		b.EnforceDepth()
 	}
 	b.OnUpdated.Call(opts)
 }
 
 // BestBid returns the highest bid price level.
 func (b *Book) BestBid() *Level {
-	b.mux.RLock()
-	defer b.mux.RUnlock()
-	return b.bestBid()
-}
-
-func (b *Book) bestBid() *Level {
 	return b.Bids.High
 }
 
 // BestAsk returns the lowest ask price level.
 func (b *Book) BestAsk() *Level {
-	b.mux.RLock()
-	defer b.mux.RUnlock()
-	return b.bestAsk()
-}
-
-func (b *Book) bestAsk() *Level {
 	return b.Asks.Low
 }
 
 // WorstAsk returns the highest ask price level.
 func (b *Book) WorstAsk() *Level {
-	b.mux.RLock()
-	defer b.mux.RUnlock()
-	return b.worstAsk()
-}
-
-func (b *Book) worstAsk() *Level {
 	return b.Asks.High
 }
 
 // WorstBid returns the lowest bid price level.
 func (b *Book) WorstBid() *Level {
-	b.mux.RLock()
-	defer b.mux.RUnlock()
-	return b.worstBid()
-}
-
-func (b *Book) worstBid() *Level {
 	return b.Bids.Low
-}
-
-// EnforceOrder check whether the bid is greater or equal to the ask and attempts to remove older conflicting price levels.
-func (b *Book) EnforceOrder() {
-	b.mux.Lock()
-	defer b.mux.Unlock()
-	b.enforceOrder()
 }
 
 type BookCrossedResult struct {
@@ -186,8 +148,9 @@ type BookCrossedResult struct {
 	Ask *Level `json:"ask,omitempty"`
 }
 
-func (b *Book) enforceOrder() {
-	for bid, ask := b.bestBid(), b.bestAsk(); bid != nil && ask != nil && bid.Price.Cmp(ask.Price) >= 0; bid, ask = b.bestBid(), b.bestAsk() {
+// EnforceOrder check whether the bid is greater or equal to the ask and attempts to remove older conflicting price levels.
+func (b *Book) EnforceOrder() {
+	for bid, ask := b.BestBid(), b.BestAsk(); bid != nil && ask != nil && bid.Price.Cmp(ask.Price) >= 0; bid, ask = b.BestBid(), b.BestAsk() {
 		b.OnBookCrossed.Call(&BookCrossedResult{
 			Bid: bid,
 			Ask: ask,
@@ -208,15 +171,8 @@ func (b *Book) enforceOrder() {
 				Timestamp: time.Now(),
 			}
 		}
-		b.update(input)
+		b.Update(input)
 	}
-}
-
-// EnforceDepth checks whether the length of each side of the book exceeds the max depth and attempts to removes the worst out-of-depth price levels.
-func (b *Book) EnforceDepth() {
-	b.mux.Lock()
-	defer b.mux.Unlock()
-	b.enforceDepth()
 }
 
 type MaxDepthExceededResult struct {
@@ -226,17 +182,18 @@ type MaxDepthExceededResult struct {
 	Worst        *Level        `json:"worst,omitempty"`
 }
 
-func (b *Book) enforceDepth() {
+// EnforceDepth checks whether the length of each side of the book exceeds the max depth and attempts to removes the worst out-of-depth price levels.
+func (b *Book) EnforceDepth() {
 	for b.Bids.Levels.Length() > b.MaxDepth {
 		b.OnMaxDepthExceeded.Call(&MaxDepthExceededResult{
 			Side:         Bid,
 			CurrentDepth: b.Bids.Levels.Length(),
 			MaxDepth:     b.MaxDepth,
-			Worst:        b.worstBid(),
+			Worst:        b.WorstBid(),
 		})
-		b.update(&BookUpdateOptions{
+		b.Update(&BookUpdateOptions{
 			Direction: Bid,
-			Price:     b.worstBid().Price,
+			Price:     b.WorstBid().Price,
 			Quantity:  NewMoneyFromInt64(0),
 			Timestamp: time.Now(),
 		})
@@ -246,11 +203,11 @@ func (b *Book) enforceDepth() {
 			Side:         Ask,
 			CurrentDepth: b.Asks.Levels.Length(),
 			MaxDepth:     b.MaxDepth,
-			Worst:        b.worstAsk(),
+			Worst:        b.WorstAsk(),
 		})
-		b.update(&BookUpdateOptions{
+		b.Update(&BookUpdateOptions{
 			Direction: Ask,
-			Price:     b.worstAsk().Price,
+			Price:     b.WorstAsk().Price,
 			Quantity:  NewMoneyFromInt64(0),
 			Timestamp: time.Now(),
 		})
@@ -283,17 +240,11 @@ type ChecksumResult struct {
 //
 // https://docs.kraken.com/api/docs/guides/spot-ws-book-v2
 func (b *Book) L2Checksum(checksum string) *ChecksumResult {
-	b.mux.RLock()
-	defer b.mux.RUnlock()
-	return b.l2Checksum(checksum)
-}
-
-func (b *Book) l2Checksum(checksum string) *ChecksumResult {
 	result := &ChecksumResult{
 		Level:          2,
 		ServerChecksum: checksum,
 	}
-	cursor := b.bestAsk()
+	cursor := b.BestAsk()
 	for range 10 {
 		if cursor == nil {
 			break
@@ -310,7 +261,7 @@ func (b *Book) l2Checksum(checksum string) *ChecksumResult {
 		result.Asks += concatenated
 		cursor = cursor.Higher
 	}
-	cursor = b.bestBid()
+	cursor = b.BestBid()
 	for range 10 {
 		if cursor == nil {
 			break
@@ -338,18 +289,12 @@ func (b *Book) l2Checksum(checksum string) *ChecksumResult {
 // L3Checksum verifies that the L3 book is synchronized with the exchange.
 //
 // https://docs.kraken.com/api/docs/guides/spot-ws-l3-v2
-func (b *Book) L3Checksum(ref string) *ChecksumResult {
-	b.mux.RLock()
-	defer b.mux.RUnlock()
-	return b.l3Checksum(ref)
-}
-
-func (b *Book) l3Checksum(checksum string) *ChecksumResult {
+func (b *Book) L3Checksum(checksum string) *ChecksumResult {
 	result := &ChecksumResult{
 		Level:          3,
 		ServerChecksum: checksum,
 	}
-	cursor := b.bestAsk()
+	cursor := b.BestAsk()
 	for range 10 {
 		if cursor == nil {
 			break
@@ -369,7 +314,7 @@ func (b *Book) l3Checksum(checksum string) *ChecksumResult {
 		}
 		cursor = cursor.Higher
 	}
-	cursor = b.bestBid()
+	cursor = b.BestBid()
 	for range 10 {
 		if cursor == nil {
 			break

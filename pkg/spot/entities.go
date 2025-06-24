@@ -256,6 +256,6 @@ type AssetTickerInfo struct {
 }
 
 type OrderBook struct {
-	Asks []*kraken.Money `json:"asks,omitempty"`
-	Bids []*kraken.Money `json:"bids,omitempty"`
+	Asks [][]*kraken.Money `json:"asks,omitempty"`
+	Bids [][]*kraken.Money `json:"bids,omitempty"`
 }

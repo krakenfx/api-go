@@ -24,9 +24,6 @@ func NewRequest() *Request {
 	return &Request{
 		Request: &http.Request{
 			Method:     "GET",
-			Proto:      "HTTP/2",
-			ProtoMajor: 2,
-			ProtoMinor: 0,
 			Header: http.Header{
 				"Content-Type": []string{"application/x-www-form-urlencoded"},
 				"User-Agent":   []string{"krakenfx/api-go"},

@@ -23,7 +23,7 @@ type Request struct {
 func NewRequest() *Request {
 	return &Request{
 		Request: &http.Request{
-			Method:     "GET",
+			Method: "GET",
 			Header: http.Header{
 				"Content-Type": []string{"application/x-www-form-urlencoded"},
 				"User-Agent":   []string{"krakenfx/api-go"},
@@ -32,9 +32,7 @@ func NewRequest() *Request {
 			GetBody: func() (io.ReadCloser, error) { return http.NoBody, nil },
 		},
 		Executor: (&http.Client{
-			Transport: &http2.Transport{
-				AllowHTTP: true,
-			},
+			Transport: &http2.Transport{},
 		}).Do,
 	}
 }

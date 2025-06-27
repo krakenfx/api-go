@@ -40,8 +40,8 @@ func (b *Book) L2Checksum(checksum string) *ChecksumResult {
 		if cursor == nil {
 			break
 		}
-		price := strings.TrimLeft(strings.ReplaceAll(cursor.GetPriceString(), ".", ""), "0")
-		quantity := strings.TrimLeft(strings.ReplaceAll(cursor.GetQuantityString(), ".", ""), "0")
+		price := strings.TrimLeft(strings.ReplaceAll(cursor.Price.String(), ".", ""), "0")
+		quantity := strings.TrimLeft(strings.ReplaceAll(cursor.Quantity.String(), ".", ""), "0")
 		concatenated := price + quantity
 		result.AskParts = append(result.AskParts, &ChecksumPart{
 			Level:        cursor,
@@ -57,8 +57,8 @@ func (b *Book) L2Checksum(checksum string) *ChecksumResult {
 		if cursor == nil {
 			break
 		}
-		price := strings.TrimLeft(strings.ReplaceAll(cursor.GetPriceString(), ".", ""), "0")
-		quantity := strings.TrimLeft(strings.ReplaceAll(cursor.GetQuantityString(), ".", ""), "0")
+		price := strings.TrimLeft(strings.ReplaceAll(cursor.Price.String(), ".", ""), "0")
+		quantity := strings.TrimLeft(strings.ReplaceAll(cursor.Quantity.String(), ".", ""), "0")
 		concatenated := price + quantity
 		result.BidParts = append(result.BidParts, &ChecksumPart{
 			Level:        cursor,

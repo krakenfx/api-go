@@ -1,9 +1,7 @@
 package book
 
 import (
-	"math"
 	"sort"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -20,7 +18,6 @@ type Level struct {
 	orders     map[string]*Order
 	queue      []*Order
 	queueDirty atomic.Bool
-	mux        sync.RWMutex
 }
 
 // NewLevel constructs a new [Level] struct with default values.
@@ -31,33 +28,35 @@ func NewLevel() *Level {
 }
 
 func (l *Level) update(opts *UpdateOptions) {
-	if opts.ID == "" {
+	l.Price = opts.Price.Copy()
+	if len(opts.ID) == 0 {
 		l.orders = make(map[string]*Order)
 		l.queue = nil
-		l.Quantity = opts.Quantity
+		l.Quantity = opts.Quantity.Copy()
 	} else {
-		order, ok := l.orders[opts.ID]
-		if !ok && opts.Quantity.Sign() == 1 {
-			order = &Order{}
-			order.ID = opts.ID
-			order.LimitPrice = l.Price
-			order.Level = l
-			l.orders[opts.ID] = order
-		}
-		if order != nil {
-			order.Quantity = opts.Quantity
+		order, orderExisted := l.orders[opts.ID]
+		if orderExisted {
+			l.Quantity = l.Quantity.Add(opts.Quantity.Sub(order.Quantity))
+			order.Quantity = opts.Quantity.Copy()
 			order.Timestamp = opts.Timestamp
+		} else if opts.Quantity.Sign() == 1 {
+			l.orders[opts.ID] = &Order{
+				ID:         opts.ID,
+				LimitPrice: opts.Price.Copy(),
+				Quantity:   opts.Quantity.Copy(),
+				Timestamp:  opts.Timestamp,
+				Level:      l,
+			}
+			if l.Quantity == nil {
+				l.Quantity = opts.Quantity.Copy()
+			} else {
+				l.Quantity = l.Quantity.Add(opts.Quantity)
+			}
 		}
 		if opts.Quantity.Sign() <= 0 {
 			delete(l.orders, opts.ID)
+			l.Quantity = l.Quantity.Sub(opts.Quantity)
 		}
-		totalQuantity := decimal.NewFromInt64(0)
-		for _, order := range l.orders {
-			totalQuantity = totalQuantity.
-				SetScale(int64(math.Max(float64(totalQuantity.GetScale()), float64(order.Quantity.GetScale())))).
-				Add(order.Quantity)
-		}
-		l.Quantity = totalQuantity
 	}
 	l.Timestamp = opts.Timestamp
 	l.queueDirty.Store(true)
@@ -65,8 +64,6 @@ func (l *Level) update(opts *UpdateOptions) {
 
 // Queue returns a list of orders arranged by time priority.
 func (l *Level) Queue() []*Order {
-	l.mux.Lock()
-	defer l.mux.Unlock()
 	if !l.queueDirty.Load() {
 		return l.queue
 	}
@@ -82,20 +79,6 @@ func (l *Level) Queue() []*Order {
 	l.queue = queue
 	l.queueDirty.Store(false)
 	return l.queue
-}
-
-// GetPriceString returns the level's price.
-func (l *Level) GetPriceString() string {
-	l.mux.RLock()
-	defer l.mux.RUnlock()
-	return l.Price.String()
-}
-
-// GetQuantityString returns the level's total quantity.
-func (l *Level) GetQuantityString() string {
-	l.mux.RLock()
-	defer l.mux.RUnlock()
-	return l.Quantity.String()
 }
 
 // Order contains information regarding a limit order.

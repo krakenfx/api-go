@@ -220,7 +220,7 @@ func (bm *BookManager) UpdateL3(b *book.Book, m map[string]any) error {
 			if err != nil {
 				return err
 			}
-			priceMoney, err := decimal.NewFromString(price.String())
+			priceDecimal, err := decimal.NewFromString(price.String())
 			if err != nil {
 				return fmt.Errorf("price: %w", err)
 			}
@@ -233,13 +233,13 @@ func (bm *BookManager) UpdateL3(b *book.Book, m map[string]any) error {
 				return fmt.Errorf("time parse: %w", err)
 			}
 			event, _ := helper.Traverse[string](record, "event")
-			quantityMoney := decimal.NewFromInt64(0)
+			quantityDecimal := decimal.NewFromInt64(0)
 			if event == nil || *event != "delete" {
 				quantity, err := helper.Traverse[json.Number](record, "order_qty")
 				if err != nil {
 					return err
 				}
-				quantityMoney, err = decimal.NewFromString(quantity.String())
+				quantityDecimal, err = decimal.NewFromString(quantity.String())
 				if err != nil {
 					return fmt.Errorf("quantity: %w", err)
 				}
@@ -247,8 +247,8 @@ func (bm *BookManager) UpdateL3(b *book.Book, m map[string]any) error {
 			b.Update(&book.UpdateOptions{
 				Direction: direction,
 				ID:        *id,
-				Price:     priceMoney,
-				Quantity:  quantityMoney,
+				Price:     priceDecimal,
+				Quantity:  quantityDecimal,
 				Timestamp: timestamp,
 			})
 		}

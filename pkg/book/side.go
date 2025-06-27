@@ -1,19 +1,16 @@
 package book
 
 import (
-	"sync"
-
 	"github.com/krakenfx/api-go/v2/pkg/decimal"
 )
 
 // Side encompasses the price levels in one side of the book.
 type Side struct {
-	Direction BookDirection
-	High      *Level
-	Low       *Level
-	Last      *Level
-	Levels    map[string]*Level
-	mux       sync.RWMutex
+	Direction BookDirection     `json:"direction,omitempty"`
+	High      *Level            `json:"high,omitempty"`
+	Low       *Level            `json:"low,omitempty"`
+	Last      *Level            `json:"last,omitempty"`
+	Levels    map[string]*Level `json:"levels,omitempty"`
 }
 
 // NewSide constructs a new [Side] with default values.
@@ -25,12 +22,6 @@ func NewSide() *Side {
 
 // FindAdjacent finds the nearest price level close to the given price.
 func (s *Side) FindAdjacent(price *decimal.Decimal) *Level {
-	s.mux.RLock()
-	defer s.mux.RUnlock()
-	return s.findAdjacent(price)
-}
-
-func (s *Side) findAdjacent(price *decimal.Decimal) *Level {
 	if s.High == nil || s.Low == nil {
 		return nil
 	}
@@ -43,20 +34,14 @@ func (s *Side) findAdjacent(price *decimal.Decimal) *Level {
 	highDistance := s.High.Price.Sub(price)
 	lowDistance := price.Sub(s.Low.Price)
 	if highDistance.Cmp(lowDistance) == 1 {
-		return s.findAdjacentBelow(price)
+		return s.FindAdjacentBelow(price)
 	} else {
-		return s.findAdjacentAbove(price)
+		return s.FindAdjacentAbove(price)
 	}
 }
 
 // FindAdjacentBelow finds the nearest price level from below the given price.
 func (s *Side) FindAdjacentBelow(price *decimal.Decimal) *Level {
-	s.mux.RLock()
-	defer s.mux.RUnlock()
-	return s.findAdjacentBelow(price)
-}
-
-func (s *Side) findAdjacentBelow(price *decimal.Decimal) *Level {
 	if s.Low == nil || price.Cmp(s.Low.Price) <= 0 {
 		return nil
 	}
@@ -78,12 +63,6 @@ func (s *Side) findAdjacentBelow(price *decimal.Decimal) *Level {
 
 // FindAdjacentAbove finds the nearest price level above the given price.
 func (s *Side) FindAdjacentAbove(price *decimal.Decimal) *Level {
-	s.mux.RLock()
-	defer s.mux.RUnlock()
-	return s.findAdjacentAbove(price)
-}
-
-func (s *Side) findAdjacentAbove(price *decimal.Decimal) *Level {
 	if s.High == nil || price.Cmp(s.High.Price) >= 0 {
 		return nil
 	}
@@ -103,29 +82,10 @@ func (s *Side) findAdjacentAbove(price *decimal.Decimal) *Level {
 	return nearest
 }
 
-// Update interprets a [UpdateOptions] message and decides if it should add, update, or delete the price level.
-func (s *Side) Update(opts *UpdateOptions) {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-	s.update(opts)
-}
-
-func (s *Side) update(opts *UpdateOptions) {
-	level, ok := s.Levels[opts.Price.String()]
-	if !ok && opts.Quantity.Sign() == 1 {
-		s.add(opts)
-	} else {
-		level.update(opts)
-	}
-	if level != nil && level.Quantity.Sign() <= 0 {
-		s.delete(level)
-	}
-}
-
-func (s *Side) add(opts *UpdateOptions) {
+func (s *Side) insert(opts *UpdateOptions) {
 	level := NewLevel()
-	level.Price = opts.Price
-	nearest := s.findAdjacent(level.Price)
+	level.update(opts)
+	nearest := s.FindAdjacent(level.Price)
 	if nearest == nil || s.High == nil || level.Price.Cmp(s.High.Price) > 0 {
 		s.High = level
 	}
@@ -149,8 +109,20 @@ func (s *Side) add(opts *UpdateOptions) {
 			}
 		}
 	}
-	level.update(opts)
-	s.Levels[level.GetPriceString()] = level
+	s.Levels[level.Price.String()] = level
+}
+
+// Update interprets a [UpdateOptions] message and decides if it should insert, update, or delete the price level.
+func (s *Side) update(opts *UpdateOptions) {
+	level, ok := s.Levels[opts.Price.String()]
+	if !ok && opts.Quantity.Sign() == 1 {
+		s.insert(opts)
+	} else {
+		level.update(opts)
+	}
+	if level != nil && level.Quantity.Sign() <= 0 {
+		s.delete(level)
+	}
 }
 
 func (s *Side) delete(level *Level) {
@@ -166,5 +138,5 @@ func (s *Side) delete(level *Level) {
 	if level.Higher != nil {
 		level.Higher.Lower = level.Lower
 	}
-	delete(s.Levels, level.GetPriceString())
+	delete(s.Levels, level.Price.String())
 }

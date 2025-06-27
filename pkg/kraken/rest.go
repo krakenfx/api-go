@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/krakenfx/api-go/v2/internal/helper"
+	"golang.org/x/net/http2"
 )
 
 // Request is a wrapper around [http.Request] to assist with internal functions.
@@ -22,10 +23,7 @@ type Request struct {
 func NewRequest() *Request {
 	return &Request{
 		Request: &http.Request{
-			Method:     "GET",
-			Proto:      "HTTP/1.1",
-			ProtoMajor: 1,
-			ProtoMinor: 1,
+			Method: "GET",
 			Header: http.Header{
 				"Content-Type": []string{"application/x-www-form-urlencoded"},
 				"User-Agent":   []string{"krakenfx/api-go"},
@@ -33,7 +31,9 @@ func NewRequest() *Request {
 			Body:    http.NoBody,
 			GetBody: func() (io.ReadCloser, error) { return http.NoBody, nil },
 		},
-		Executor: http.DefaultClient.Do,
+		Executor: (&http.Client{
+			Transport: &http2.Transport{},
+		}).Do,
 	}
 }
 

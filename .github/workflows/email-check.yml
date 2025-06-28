@@ -1,6 +1,6 @@
 name: Email Address Check
 
-on: [ push ]
+on: [push]
 
 jobs:
   check-emails:
@@ -9,21 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for all branches and tags
+          fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Check commit emails
         run: |
-          # Get all commits in the current branch that aren't in the base branch
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            COMMITS=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
-          else
-            # For push events, check the pushed commits
-            if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
-              COMMITS=$(git rev-list ${{ github.event.after }})
-            else
-              COMMITS=$(git rev-list ${{ github.event.before }}..${{ github.event.after }})
-            fi
-          fi
+          # Get all commits in the current branch
+          COMMITS=$(git rev-list HEAD)
 
           # Initialize error flag
           ERROR=0
@@ -51,4 +42,4 @@ jobs:
             exit 1
           else
             echo "✅ No @kraken.com email addresses found in commits."
-          fi 
+          fi

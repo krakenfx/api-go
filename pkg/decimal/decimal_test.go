@@ -29,9 +29,11 @@ func TestMath(t *testing.T) {
 	} else if d = d.Mul(NewFromInt64(2)); d.String() != "2.030" {
 		t.Errorf("Mul(2) != 2.030, got %s", d)
 	} else if d = d.Div(NewFromInt64(2)); d.String() != "1.015" {
-		t.Errorf("Div(2) != d.String(), got %s", d)
+		t.Errorf("Div(2) != 1.015, got %s", d)
 	} else if d = d.Pow(NewFromInt64(2)); d.String() != "1.030" {
-		t.Errorf("Pow(2) != d.String(), got %s", d)
+		t.Errorf("Pow(2) != 1.030, got %s", d)
+	} else if d = d.Add(NewFromInt64(-1)); d.String() != "0.030" {
+		t.Errorf("Add(-1) != 0.030, got %s", d)
 	}
 }
 

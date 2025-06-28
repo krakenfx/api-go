@@ -11,7 +11,7 @@ import (
 // Order book structure for L2 and L3.
 type Book struct {
 	// Name of the book.
-	Name string
+	Name string `json:"name,omitempty"`
 
 	// Configuration
 
@@ -19,23 +19,23 @@ type Book struct {
 	MaxDepth int `json:"maxDepth,omitempty"`
 
 	// Whether to eliminate book crossings for each update.
-	NoBookCrossing bool
+	NoBookCrossing bool `json:"noBookCrossing,omitempty"`
 
 	// Whether to trim price levels outside of the max depth.
 	// Must be disable for whole books.
-	EnableMaxDepth bool
+	EnableMaxDepth bool `json:"enableMaxDepth,omitempty"`
 
 	// Sides
 
-	Bids *Side
-	Asks *Side
+	Bids *Side `json:"bids,omitempty"`
+	Asks *Side `json:"asks,omitempty"`
 
 	// Events
 
-	OnUpdated          *callback.Manager[*UpdateOptions]
-	OnBookCrossed      *callback.Manager[*CrossedResult]
-	OnMaxDepthExceeded *callback.Manager[*MaxDepthExceededResult]
-	OnChecksummed      *callback.Manager[*ChecksumResult]
+	OnUpdated          *callback.Manager[*UpdateOptions]          `json:"-"`
+	OnBookCrossed      *callback.Manager[*CrossedResult]          `json:"-"`
+	OnMaxDepthExceeded *callback.Manager[*MaxDepthExceededResult] `json:"-"`
+	OnChecksummed      *callback.Manager[*ChecksumResult]         `json:"-"`
 }
 
 // New constructs a new [Book] struct with default values.
@@ -111,9 +111,9 @@ type UpdateOptions struct {
 func (b *Book) Update(opts *UpdateOptions) {
 	switch opts.Direction {
 	case Ask:
-		b.Asks.Update(opts)
+		b.Asks.update(opts)
 	case Bid:
-		b.Bids.Update(opts)
+		b.Bids.update(opts)
 	}
 	if b.NoBookCrossing {
 		b.EnforceOrder()
@@ -184,6 +184,7 @@ type MaxDepthExceededResult struct {
 	Worst        *Level        `json:"worst,omitempty"`
 }
 
+// EnforceDepth checks for price level count that exceed the max depth, then removes the worst price levels until compliant.
 func (b *Book) EnforceDepth() {
 	for len(b.Bids.Levels) > b.MaxDepth {
 		b.OnMaxDepthExceeded.Call(&MaxDepthExceededResult{

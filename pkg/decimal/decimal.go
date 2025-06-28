@@ -240,7 +240,7 @@ func (x *Decimal) Pow(y *Decimal) *Decimal {
 	return NewFromFloat64(math.Pow(x.Float64(), y.Float64())).SetScale(x.scale)
 }
 
-// Sign returns -1 if m < 0, 0 if m == 0, and +1 if m > 0.
+// Sign returns -1 if d < 0, 0 if d == 0, and +1 if d > 0.
 func (d *Decimal) Sign() int {
 	return d.integer.Sign()
 }
@@ -253,7 +253,7 @@ func (x *Decimal) Cmp(y *Decimal) int {
 	return x.Rat().Cmp(y.Rat())
 }
 
-// GetSmallestIncrement returns the smallest possible increment of m.
+// GetSmallestIncrement returns the smallest possible increment of d.
 func (d *Decimal) GetSmallestIncrement() *Decimal {
 	amount := big.NewInt(d.increment)
 	smallest := new(Decimal)
@@ -324,9 +324,9 @@ func (d *Decimal) OffsetTicks(o *Decimal) *Decimal {
 	)
 }
 
-// OffsetPercent returns the adjustment of m by %o.
+// OffsetPercent returns the adjustment of d by %o.
 // Formula: m * (1 + o).
-// The multiplicand decimals are set to the max precision of both m and o.
+// The multiplicand decimals are set to the max precision of both d and o.
 func (d *Decimal) OffsetPercent(o *Decimal) *Decimal {
 	multiplicand := NewFromInt64(1).Add(o)
 	originalDecimals := d.scale
@@ -335,10 +335,10 @@ func (d *Decimal) OffsetPercent(o *Decimal) *Decimal {
 		SetScale(originalDecimals)
 }
 
-// Abs returns the absolute value of m.
+// Abs returns the absolute value of d.
 func (d *Decimal) Abs() *Decimal {
 	result := d.Copy()
-	result.integer = new(big.Int).Abs(d.integer)
+	result.integer.Abs(d.integer)
 	return result
 }
 

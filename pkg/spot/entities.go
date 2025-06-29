@@ -485,15 +485,15 @@ type EarnStrategyAPR struct {
 	High string `json:"high,omitempty"`
 }
 type EarnStrategyLockType struct {
-	Type                    string           `json:"type,omitempty"`
-	BondingPeriod           *decimal.Decimal `json:"bonding_period,omitempty"`
-	BondingPeriodVariable   bool             `json:"bonding_period_variable,omitempty"`
-	BondingRewards          bool             `json:"bonding_rewards,omitempty"`
-	ExitQueuePeriod         *decimal.Decimal `json:"exit_queue_period"`
-	PayoutFrequency         *decimal.Decimal `json:"payout_frequency,omitempty"`
-	UnbondingPeriod         *decimal.Decimal `json:"unbonding_period,omitempty"`
-	UnbondingPeriodVariable bool             `json:"unbonding_period_variable,omitempty"`
-	UnbondingRewards        bool             `json:"unbonding_rewards,omitempty"`
+	Type                    string `json:"type,omitempty"`
+	BondingPeriod           int    `json:"bonding_period,omitempty"`
+	BondingPeriodVariable   bool   `json:"bonding_period_variable,omitempty"`
+	BondingRewards          bool   `json:"bonding_rewards,omitempty"`
+	ExitQueuePeriod         int    `json:"exit_queue_period"`
+	PayoutFrequency         int    `json:"payout_frequency,omitempty"`
+	UnbondingPeriod         int    `json:"unbonding_period,omitempty"`
+	UnbondingPeriodVariable bool   `json:"unbonding_period_variable,omitempty"`
+	UnbondingRewards        bool   `json:"unbonding_rewards,omitempty"`
 }
 
 type EarnStrategyYieldSource struct {
@@ -510,7 +510,7 @@ type EarnStrategy struct {
 	Asset                     string                   `json:"asset,omitempty"`
 	LockType                  EarnStrategyLockType     `json:"lock_type,omitempty"`
 	AprEstimate               *EarnStrategyAPR         `json:"apr_estimate,omitempty"`
-	UserMinAllocation         string                   `json:"user_min_allocation,omitempty"`
+	UserMinAllocation         *decimal.Decimal         `json:"user_min_allocation,omitempty"`
 	AllocationFee             *decimal.Decimal         `json:"allocation_fee,omitempty"`
 	DeallocationFee           *decimal.Decimal         `json:"deallocation_fee,omitempty"`
 	AutoCompound              EarnStrategyAutoCompound `json:"auto_compound,omitempty"`
@@ -521,38 +521,38 @@ type EarnStrategy struct {
 }
 
 type EarnAllocationReward struct {
-	Native    string `json:"native"`
-	Converted string `json:"converted"`
+	Native    *decimal.Decimal `json:"native"`
+	Converted *decimal.Decimal `json:"converted"`
 }
 type EarnAllocationAmountState struct {
-	Native          string                       `json:"native,omitempty"`
-	Converted       string                       `json:"converted,omitempty"`
-	AllocationCount int                          `json:"allocation_count,omitempty"`
-	Allocations     []*EarnAllocationStateDetail `json:"allocations,omitempty"`
+	Native          *decimal.Decimal            `json:"native,omitempty"`
+	Converted       *decimal.Decimal            `json:"converted,omitempty"`
+	AllocationCount int                         `json:"allocation_count,omitempty"`
+	Allocations     []EarnAllocationStateDetail `json:"allocations,omitempty"`
 }
 type EarnAllocationStateDetail struct {
-	Native    string `json:"native,omitempty"`
-	Converted string `json:"converted,omitempty"`
-	CreatedAt string `json:"created_at,omitempty"`
-	Expires   string `json:"expires,omitempty"`
+	Native    string    `json:"native,omitempty"`
+	Converted time.Time `json:"converted,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	Expires   time.Time `json:"expires,omitempty"`
 }
 type EarnAllocationAmount struct {
-	Bonding   *EarnAllocationAmountState `json:"bonding,omitempty"`
-	ExitQueue *EarnAllocationAmountState `json:"exit_queue,omitempty"`
-	Pending   *EarnAllocationAmountState `json:"pending,omitempty"`
-	Total     *EarnAllocationAmountState `json:"total,omitempty"`
-	Unbonding *EarnAllocationAmountState `json:"unbonding,omitempty"`
+	Bonding   EarnAllocationAmountState `json:"bonding,omitempty"`
+	ExitQueue EarnAllocationAmountState `json:"exit_queue,omitempty"`
+	Pending   EarnAllocationAmountState `json:"pending,omitempty"`
+	Total     EarnAllocationAmountState `json:"total,omitempty"`
+	Unbonding EarnAllocationAmountState `json:"unbonding,omitempty"`
 }
 type EarnAllocationPayout struct {
-	AccumulatedReward *EarnAllocationReward `json:"accumulated_reward,omitempty"`
-	EstimatedReward   *EarnAllocationReward `json:"estimated_reward,omitempty"`
-	PeriodStart       string                `json:"period_start,omitempty"`
-	PeriodEnd         string                `json:"period_end,omitempty"`
+	AccumulatedReward EarnAllocationReward `json:"accumulated_reward,omitempty"`
+	EstimatedReward   EarnAllocationReward `json:"estimated_reward,omitempty"`
+	PeriodStart       string               `json:"period_start,omitempty"`
+	PeriodEnd         string               `json:"period_end,omitempty"`
 }
 type EarnAllocation struct {
-	StrategyID      string                `json:"strategy_id,omitempty"`
-	NativeAsset     string                `json:"native_asset,omitempty"`
-	AmountAllocated EarnAllocationAmount  `json:"amount_allocated,omitempty"`
-	TotalRewarded   EarnAllocationReward  `json:"total_rewarded,omitempty"`
-	Payout          *EarnAllocationPayout `json:"payout,omitempty"`
+	StrategyID      string               `json:"strategy_id,omitempty"`
+	NativeAsset     string               `json:"native_asset,omitempty"`
+	AmountAllocated EarnAllocationAmount `json:"amount_allocated,omitempty"`
+	TotalRewarded   EarnAllocationReward `json:"total_rewarded,omitempty"`
+	Payout          EarnAllocationPayout `json:"payout,omitempty"`
 }

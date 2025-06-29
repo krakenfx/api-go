@@ -1,6 +1,11 @@
 package spot
 
-import "github.com/krakenfx/api-go/v2/pkg/decimal"
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
+)
 
 type FullName struct {
 	FirstName  string `json:"first_name,omitempty"`
@@ -23,19 +28,19 @@ type Residence struct {
 }
 
 type UserInfo struct {
-	Email              string     `json:"email,omitempty"`
-	ExternalID         string     `json:"external_id,omitempty"`
-	TOSVersionAccepted int        `json:"tos_version_accepted,omitempty"`
-	FullName           *FullName  `json:"full_name,omitempty"`
-	DateOfBirth        string     `json:"date_of_birth,omitempty"`
-	Residence          *Residence `json:"residence,omitempty"`
-	Phone              string     `json:"phone,omitempty"`
-	Nationalities      []string   `json:"nationalities,omitempty"`
-	Occupation         string     `json:"occupation,omitempty"`
-	CityOfBirth        string     `json:"city_of_birth,omitempty"`
-	CountryOfBirth     string     `json:"country_of_birth,omitempty"`
-	TaxIDs             []*TaxID   `json:"tax_ids,omitempty"`
-	Language           string     `json:"language,omitempty"`
+	Email              string    `json:"email,omitempty"`
+	ExternalID         string    `json:"external_id,omitempty"`
+	TOSVersionAccepted int       `json:"tos_version_accepted,omitempty"`
+	FullName           FullName  `json:"full_name,omitempty"`
+	DateOfBirth        string    `json:"date_of_birth,omitempty"`
+	Residence          Residence `json:"residence,omitempty"`
+	Phone              string    `json:"phone,omitempty"`
+	Nationalities      []string  `json:"nationalities,omitempty"`
+	Occupation         string    `json:"occupation,omitempty"`
+	CityOfBirth        string    `json:"city_of_birth,omitempty"`
+	CountryOfBirth     string    `json:"country_of_birth,omitempty"`
+	TaxIDs             []TaxID   `json:"tax_ids,omitempty"`
+	Language           string    `json:"language,omitempty"`
 }
 
 type ActionDetailsType struct {
@@ -53,14 +58,14 @@ type UserRequiredAction struct {
 }
 
 type UserStatus struct {
-	State           string                `json:"state,omitempty"`
-	Reasons         []string              `json:"reasons,omitempty"`
-	RequiredActions []*UserRequiredAction `json:"required_actions,omitempty"`
+	State           string               `json:"state,omitempty"`
+	Reasons         []string             `json:"reasons,omitempty"`
+	RequiredActions []UserRequiredAction `json:"required_actions,omitempty"`
 }
 
 type Identity struct {
-	FullName    *FullName `json:"full_name,omitempty"`
-	DateOfBirth string    `json:"date_of_birth,omitempty"`
+	FullName    FullName `json:"full_name,omitempty"`
+	DateOfBirth string   `json:"date_of_birth,omitempty"`
 }
 
 type Watchlist struct {
@@ -73,7 +78,7 @@ type Watchlist struct {
 }
 
 type VerificationMetadata struct {
-	Identity               *Identity  `json:"identity,omitempty"`
+	Identity               Identity   `json:"identity,omitempty"`
 	Address                *Residence `json:"address,omitempty"`
 	Sanctions              *Watchlist `json:"sanctions,omitempty"`
 	NegativeNews           *Watchlist `json:"negative_news,omitempty"`

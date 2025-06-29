@@ -205,7 +205,7 @@ type AssetInfo struct {
 	Status          string           `json:"status,omitempty"`
 }
 
-type AssetPair struct {
+type JSONAssetPair struct {
 	AltName            string               `json:"altname,omitempty"`
 	WSName             string               `json:"wsname,omitempty"`
 	BaseAssetClass     string               `json:"aclass_base,omitempty"`
@@ -231,6 +231,88 @@ type AssetPair struct {
 	ShortPositionLimit int                  `json:"short_position_limit,omitempty"`
 }
 
+func (jap JSONAssetPair) AssetPair() AssetPair {
+	fees := make([]Fee, len(jap.Fees))
+	for i, fee := range jap.Fees {
+		fees[i] = Fee{
+			Volume:  fee[0],
+			Percent: fee[1],
+		}
+	}
+	feesMaker := make([]Fee, len(jap.FeesMaker))
+	for i, fee := range jap.FeesMaker {
+		feesMaker[i] = Fee{
+			Volume:  fee[0],
+			Percent: fee[1],
+		}
+	}
+	return AssetPair{
+		AltName:            jap.AltName,
+		WSName:             jap.WSName,
+		BaseAssetClass:     jap.BaseAssetClass,
+		Base:               jap.Base,
+		QuoteAssetClass:    jap.QuoteAssetClass,
+		Quote:              jap.Quote,
+		PairDecimals:       jap.PairDecimals,
+		CostDecimals:       jap.CostDecimals,
+		LotDecimals:        jap.LotDecimals,
+		LotMultiplier:      jap.LotMultiplier,
+		BuyLeverage:        jap.BuyLeverage,
+		SellLeverage:       jap.SellLeverage,
+		Fees:               fees,
+		FeesMaker:          feesMaker,
+		FeeVolumeCurrency:  jap.FeeVolumeCurrency,
+		MarginCall:         jap.MarginCall,
+		MarginStop:         jap.MarginStop,
+		OrderMinimum:       jap.OrderMinimum,
+		CostMinimum:        jap.CostMinimum,
+		TickSize:           jap.TickSize,
+		Status:             jap.Status,
+		LongPositionLimit:  jap.LongPositionLimit,
+		ShortPositionLimit: jap.ShortPositionLimit,
+	}
+}
+
+type AssetPair struct {
+	AltName            string           `json:"altname,omitempty"`
+	WSName             string           `json:"wsname,omitempty"`
+	BaseAssetClass     string           `json:"aclass_base,omitempty"`
+	Base               string           `json:"base,omitempty"`
+	QuoteAssetClass    string           `json:"aclass_quote,omitempty"`
+	Quote              string           `json:"quote,omitempty"`
+	PairDecimals       int              `json:"pair_decimals,omitempty"`
+	CostDecimals       int              `json:"cost_decimals,omitempty"`
+	LotDecimals        int              `json:"lot_decimals,omitempty"`
+	LotMultiplier      int              `json:"lot_multiplier,omitempty"`
+	BuyLeverage        []int            `json:"leverage_buy,omitempty"`
+	SellLeverage       []int            `json:"leverage_sell,omitempty"`
+	Fees               []Fee            `json:"fees,omitempty"`
+	FeesMaker          []Fee            `json:"fees_maker,omitempty"`
+	FeeVolumeCurrency  string           `json:"fee_volume_currency,omitempty"`
+	MarginCall         int              `json:"margin_call,omitempty"`
+	MarginStop         int              `json:"margin_stop,omitempty"`
+	OrderMinimum       *decimal.Decimal `json:"ordermin,omitempty"`
+	CostMinimum        *decimal.Decimal `json:"costmin,omitempty"`
+	TickSize           *decimal.Decimal `json:"tick_size,omitempty"`
+	Status             string           `json:"status,omitempty"`
+	LongPositionLimit  int              `json:"long_position_limit,omitempty"`
+	ShortPositionLimit int              `json:"short_position_limit,omitempty"`
+}
+
+func (ap *AssetPair) UnmarshalJSON(data []byte) error {
+	var v JSONAssetPair
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*ap = v.AssetPair()
+	return nil
+}
+
+type Fee struct {
+	Volume  *decimal.Decimal `json:"volume,omitempty"`
+	Percent *decimal.Decimal `json:"percent_fee,omitempty"`
+}
+
 type AssetTickerInfo struct {
 	Ask    []*decimal.Decimal `json:"a,omitempty"`
 	Bid    []*decimal.Decimal `json:"b,omitempty"`
@@ -243,9 +325,49 @@ type AssetTickerInfo struct {
 	Open   *decimal.Decimal   `json:"o,omitempty"`
 }
 
-type OrderBook struct {
+type JSONOrderBook struct {
 	Asks [][]*decimal.Decimal `json:"asks,omitempty"`
 	Bids [][]*decimal.Decimal `json:"bids,omitempty"`
+}
+
+func (job JSONOrderBook) OrderBook() (book OrderBook) {
+	book.Asks = make([]PriceLevel, len(job.Asks))
+	for i, ask := range job.Asks {
+		book.Asks[i] = PriceLevel{
+			Price:     ask[0],
+			Volume:    ask[1],
+			Timestamp: time.Unix(ask[2].Int64(), 0),
+		}
+	}
+	book.Bids = make([]PriceLevel, len(job.Bids))
+	for i, bid := range job.Bids {
+		book.Bids[i] = PriceLevel{
+			Price:     bid[0],
+			Volume:    bid[1],
+			Timestamp: time.Unix(bid[2].Int64(), 0),
+		}
+	}
+	return
+}
+
+type OrderBook struct {
+	Asks []PriceLevel `json:"asks,omitempty"`
+	Bids []PriceLevel `json:"bids,omitempty"`
+}
+
+func (ob *OrderBook) UnmarshalJSON(data []byte) error {
+	var v JSONOrderBook
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*ob = v.OrderBook()
+	return nil
+}
+
+type PriceLevel struct {
+	Price     *decimal.Decimal `json:"price,omitempty"`
+	Volume    *decimal.Decimal `json:"volume,omitempty"`
+	Timestamp time.Time        `json:"timestamp,omitempty"`
 }
 
 type DepositMethod struct {
@@ -264,19 +386,60 @@ type DepositAddress struct {
 	Tag      string `json:"tag,omitempty"`
 }
 
+type JSONDepositStatus struct {
+	Method      string           `json:"method,omitempty"`
+	Aclass      string           `json:"aclass,omitempty"`
+	Asset       string           `json:"asset,omitempty"`
+	RefID       string           `json:"refid,omitempty"`
+	TxID        string           `json:"txid,omitempty"`
+	Info        string           `json:"info,omitempty"`
+	Amount      *decimal.Decimal `json:"amount,omitempty"`
+	Fee         *decimal.Decimal `json:"fee,omitempty"`
+	Time        int              `json:"time,omitempty"`
+	Status      string           `json:"status,omitempty"`
+	StatusProp  string           `json:"status-prop,omitempty"`
+	Originators []string         `json:"originators,omitempty"`
+}
+
+func (jds JSONDepositStatus) DepositStatus() DepositStatus {
+	return DepositStatus{
+		Method:      jds.Method,
+		Aclass:      jds.Aclass,
+		Asset:       jds.Asset,
+		RefID:       jds.RefID,
+		TxID:        jds.TxID,
+		Info:        jds.Info,
+		Amount:      jds.Amount,
+		Fee:         jds.Fee,
+		Time:        time.Unix(int64(jds.Time), 0),
+		Status:      jds.Status,
+		StatusProp:  jds.StatusProp,
+		Originators: jds.Originators,
+	}
+}
+
 type DepositStatus struct {
-	Method      string   `json:"method,omitempty"`
-	Aclass      string   `json:"aclass,omitempty"`
-	Asset       string   `json:"asset,omitempty"`
-	Refid       string   `json:"refid,omitempty"`
-	Txid        string   `json:"txid,omitempty"`
-	Info        string   `json:"info,omitempty"`
-	Amount      string   `json:"amount,omitempty"`
-	Fee         string   `json:"fee,omitempty"`
-	Time        int64    `json:"time,omitempty"`
-	Status      string   `json:"status,omitempty"`
-	StatusProp  string   `json:"status-prop,omitempty"`
-	Originators []string `json:"originators,omitempty"`
+	Method      string           `json:"method,omitempty"`
+	Aclass      string           `json:"aclass,omitempty"`
+	Asset       string           `json:"asset,omitempty"`
+	RefID       string           `json:"refid,omitempty"`
+	TxID        string           `json:"txid,omitempty"`
+	Info        string           `json:"info,omitempty"`
+	Amount      *decimal.Decimal `json:"amount,omitempty"`
+	Fee         *decimal.Decimal `json:"fee,omitempty"`
+	Time        time.Time        `json:"time,omitempty"`
+	Status      string           `json:"status,omitempty"`
+	StatusProp  string           `json:"status-prop,omitempty"`
+	Originators []string         `json:"originators,omitempty"`
+}
+
+func (ds *DepositStatus) UnmarshalJSON(data []byte) error {
+	var v JSONDepositStatus
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*ds = v.DepositStatus()
+	return nil
 }
 
 type WithdrawMethod struct {

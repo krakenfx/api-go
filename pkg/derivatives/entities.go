@@ -84,17 +84,15 @@ func (job JSONOrderBook) OrderBook() (book OrderBook) {
 	book.Asks = make([]PriceLevel, len(job.Asks))
 	for i, ask := range job.Asks {
 		book.Asks[i] = PriceLevel{
-			Price:     ask[0],
-			Volume:    ask[1],
-			Timestamp: time.Unix(ask[2].Int64(), 0),
+			Price:  ask[0],
+			Volume: ask[1],
 		}
 	}
 	book.Bids = make([]PriceLevel, len(job.Bids))
 	for i, bid := range job.Bids {
 		book.Bids[i] = PriceLevel{
-			Price:     bid[0],
-			Volume:    bid[1],
-			Timestamp: time.Unix(bid[2].Int64(), 0),
+			Price:  bid[0],
+			Volume: bid[1],
 		}
 	}
 	return
@@ -115,9 +113,8 @@ func (ob *OrderBook) UnmarshalJSON(data []byte) error {
 }
 
 type PriceLevel struct {
-	Price     *decimal.Decimal `json:"price,omitempty"`
-	Volume    *decimal.Decimal `json:"volume,omitempty"`
-	Timestamp time.Time        `json:"timestamp,omitempty"`
+	Price  *decimal.Decimal `json:"price,omitempty"`
+	Volume *decimal.Decimal `json:"volume,omitempty"`
 }
 
 type Trade struct {

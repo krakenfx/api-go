@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/kraken"
-	"github.com/krakenfx/api-go/pkg/spot"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/spot"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 	client.BaseURL = os.Getenv("KRAKEN_API_SPOT_REST_URL")
 	client.PublicKey = os.Getenv("KRAKEN_API_SPOT_PUBLIC")
 	client.PrivateKey = os.Getenv("KRAKEN_API_SPOT_SECRET")
-	withdrawMethods, err := client.Issue(&spot.RequestOptions{
+	withdrawMethods, err := client.Call(spot.RequestOptions{
 		Auth:   true,
 		Method: "POST",
 		Path:   []any{"/0/private/WithdrawMethods"},
@@ -24,5 +24,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Withdraw methods: %s\n", kraken.ToJSONIndent(withdrawMethods))
+	fmt.Printf("Withdraw methods: %s\n", helper.ToJSONIndent(withdrawMethods))
 }

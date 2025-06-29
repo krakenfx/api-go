@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/derivatives"
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
 func main() {
@@ -19,5 +19,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Accounts: %s\n", kraken.ToJSONIndent(accounts))
+	fmt.Printf("Accounts: %s\n", helper.ToJSONIndent(accounts))
 }

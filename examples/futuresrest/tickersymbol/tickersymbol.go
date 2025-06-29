@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/derivatives"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
 // Derivative contract.
@@ -17,27 +17,27 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Symbol: %s", resp.Ticker.Symbol)
-	if resp.Ticker.Last != nil {
-		fmt.Printf(", Last Price: %s", resp.Ticker.Last)
+	fmt.Printf("Symbol: %s", resp.Result.Data.Symbol)
+	if resp.Result.Data.Last != nil {
+		fmt.Printf(", Last Price: %s", resp.Result.Data.Last)
 	}
-	if resp.Ticker.MarkPrice != nil {
-		fmt.Printf(", Mark Price: %s", resp.Ticker.MarkPrice)
+	if resp.Result.Data.MarkPrice != nil {
+		fmt.Printf(", Mark Price: %s", resp.Result.Data.MarkPrice)
 	}
-	if resp.Ticker.Bid != nil {
-		fmt.Printf(", Bid: %s", resp.Ticker.Bid)
+	if resp.Result.Data.Bid != nil {
+		fmt.Printf(", Bid: %s", resp.Result.Data.Bid)
 	}
-	if resp.Ticker.Ask != nil {
-		fmt.Printf(", Ask: %s", resp.Ticker.Ask)
+	if resp.Result.Data.Ask != nil {
+		fmt.Printf(", Ask: %s", resp.Result.Data.Ask)
 	}
-	if resp.Ticker.IndexPrice != nil {
-		fmt.Printf(", Index: %s", resp.Ticker.IndexPrice)
+	if resp.Result.Data.IndexPrice != nil {
+		fmt.Printf(", Index: %s", resp.Result.Data.IndexPrice)
 	}
-	if resp.Ticker.FundingRate != nil {
-		fmt.Printf(", Funding Rate: %s", resp.Ticker.FundingRate)
+	if resp.Result.Data.FundingRate != nil {
+		fmt.Printf(", Funding Rate: %s", resp.Result.Data.FundingRate)
 	}
-	if resp.Ticker.FundingRatePrediction != nil {
-		fmt.Printf(", Next Funding Rate: %s", resp.Ticker.FundingRatePrediction)
+	if resp.Result.Data.FundingRatePrediction != nil {
+		fmt.Printf(", Next Funding Rate: %s", resp.Result.Data.FundingRatePrediction)
 	}
 	fmt.Printf("\n")
 }

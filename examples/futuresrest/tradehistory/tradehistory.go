@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/derivatives"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
 // Derivative contract.
@@ -18,10 +18,9 @@ func main() {
 		Symbol: contract,
 	})
 	if err != nil {
-		fmt.Printf("%s\n", resp.Request.URL)
 		panic(err)
 	}
-	for _, trade := range resp.History {
+	for _, trade := range resp.Result.History {
 		fmt.Printf("%s %s units of %s on %s at price %s\n", trade.Side, trade.Side, contract, trade.Time, trade.Price)
 	}
 }

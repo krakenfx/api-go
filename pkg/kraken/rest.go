@@ -5,100 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"net/url"
-	"path/filepath"
-	"reflect"
 	"strings"
+
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"golang.org/x/net/http2"
 )
-
-// REST API wrapper for the HTTP client.
-type REST struct {
-	BaseURL            string
-	DefaultContentType string
-	DefaultUserAgent   string
-	*http.Client
-}
-
-// NewREST constructs a new [REST] struct with default values.
-func NewREST() *REST {
-	return &REST{
-		DefaultContentType: "application/x-www-form-urlencoded",
-		DefaultUserAgent:   "krakenfx/api-go",
-		Client:             http.DefaultClient,
-	}
-}
-
-// NewRequestOptions contains the parameters for [REST.NewRequest].
-type NewRequestOptions struct {
-	Method     string
-	Path       any
-	PathValues map[string]any
-	Query      map[string]any
-	Headers    map[string]any
-	Body       any
-}
-
-// NewRequest creates a new [Request].
-func (r *REST) NewRequest(opts *NewRequestOptions) (*Request, error) {
-	request := NewRequest()
-	request.Method = opts.Method
-	switch path := opts.Path.(type) {
-	case []any:
-		if err := request.SetURL(r.BaseURL, path...); err != nil {
-			return nil, fmt.Errorf("set url: %w", err)
-		}
-	default:
-		if err := request.SetURL(r.BaseURL, fmt.Sprint(path)); err != nil {
-			return nil, fmt.Errorf("set url: %w", err)
-		}
-	}
-	request.SetQuery(opts.Query)
-	request.SetHeader("Content-Type", r.DefaultContentType)
-	request.SetHeader("User-Agent", r.DefaultUserAgent)
-	request.SetHeaders(opts.Headers)
-	if opts.Body != nil {
-		if err := request.SetBody(opts.Body); err != nil {
-			return nil, err
-		}
-	}
-	return request, nil
-}
-
-// Do submits a [Request] struct and returns a [Response].
-func (r *REST) Do(req *Request) (*Response, error) {
-	response, err := r.Client.Do(req.Request)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_ = response.Body.Close()
-	}()
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("io read all failed: %s", err)
-	}
-	responseWrapped := &Response{
-		Request:  req,
-		Body:     body,
-		Response: response,
-	}
-	return responseWrapped, nil
-}
-
-// Request helps to call [REST.NewRequest] and [REST.Do] in one line.
-func (r *REST) Request(cfg *NewRequestOptions) (*Response, error) {
-	request, err := r.NewRequest(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return r.Do(request)
-}
 
 // Request is a wrapper around [http.Request] to assist with internal functions.
 type Request struct {
-	Body          []byte `json:"body,omitempty"`
+	Executor      ExecutorFunction `json:"-"`
 	*http.Request `json:"-"`
 }
 
@@ -106,17 +23,115 @@ type Request struct {
 func NewRequest() *Request {
 	return &Request{
 		Request: &http.Request{
-			Method:     "GET",
-			Proto:      "HTTP/1.1",
-			ProtoMajor: 1,
-			ProtoMinor: 1,
+			Method: "GET",
 			Header: http.Header{
 				"Content-Type": []string{"application/x-www-form-urlencoded"},
+				"User-Agent":   []string{"krakenfx/api-go"},
 			},
 			Body:    http.NoBody,
 			GetBody: func() (io.ReadCloser, error) { return http.NoBody, nil },
 		},
+		Executor: (&http.Client{
+			Transport: &http2.Transport{},
+		}).Do,
 	}
+}
+
+// RequestOptions contains the parameters for [NewRequestWithOptions].
+type RequestOptions struct {
+	Method      string
+	URL         string
+	Headers     map[string]any
+	Path        any
+	Query       any
+	Body        any
+	ContentType string
+	UserAgent   string
+	Executor    ExecutorFunction
+}
+
+// Whether the request parameters should be in the body or URL query.
+type ParamMode uint8
+
+const (
+	BodyMode ParamMode = iota
+	QueryMode
+)
+
+// NewRequestWithOptions constructs a new [Request] with [RequestOptions].
+func NewRequestWithOptions(opts RequestOptions) (request *Request, err error) {
+	request = NewRequest()
+	if err := request.SetURL(opts.URL); err != nil {
+		return request, fmt.Errorf("set URL: %w", err)
+	}
+	if opts.ContentType != "" {
+		request.Header.Set("Content-Type", opts.ContentType)
+	}
+	if opts.UserAgent != "" {
+		request.Header.Set("User-Agent", opts.UserAgent)
+	}
+	if err := request.SetHeaders(opts.Headers); err != nil {
+		return request, fmt.Errorf("set headers: %w", err)
+	}
+	if opts.Method != "" {
+		request.Method = opts.Method
+	}
+	if opts.Path != nil {
+		if err := request.SetPath(opts.Path); err != nil {
+			return request, fmt.Errorf("set path: %w", err)
+		}
+	}
+	if opts.Query != nil {
+		if err := request.SetQuery(opts.Query); err != nil {
+			return request, fmt.Errorf("set query: %w", err)
+		}
+	}
+	if opts.Body != nil {
+		if err := request.SetBody(opts.Body); err != nil {
+			return request, fmt.Errorf("set body: %w", err)
+		}
+	}
+	if opts.Executor != nil {
+		request.Executor = opts.Executor
+	}
+	return request, nil
+}
+
+// MustNewRequestWithOptions constructs a new [Request] with [RequestOptions]. Panics on error.
+func MustNewRequestWithOptions(opts RequestOptions) *Request {
+	return helper.Must(NewRequestWithOptions(opts))
+}
+
+// ExecutorFunction takes a [http.Request] and returns a [http.Response].
+type ExecutorFunction func(request *http.Request) (*http.Response, error)
+
+// Do submits the request and returns a [Response].
+func (r *Request) Do() (resp *Response, err error) {
+	resp = &Response{Request: r}
+	response, err := r.Executor(r.Request)
+	resp.Response = response
+	if err != nil {
+		return resp, err
+	}
+	defer func() {
+		_ = response.Body.Close()
+	}()
+	body, err := io.ReadAll(response.Body)
+	resp.Body = body
+	if err != nil {
+		return resp, fmt.Errorf("io read all: %w", err)
+	}
+	result := &Response{
+		Request:  r,
+		Body:     body,
+		Response: response,
+	}
+	return result, nil
+}
+
+// MustDo submits the request and returns a [Response]. Panics on error.
+func (r *Request) MustDo() *Response {
+	return helper.Must(r.Do())
 }
 
 // GetMediaType retrieves the Content-Type header without additional parameters.
@@ -127,235 +142,111 @@ func (r *Request) GetMediaType() string {
 }
 
 // SetURL creates a [url.URL] from the given base and path parameters and sets it as the URL.
-func (r *Request) SetURL(base string, s ...any) error {
+func (r *Request) SetURL(base string) error {
+	if base == "" {
+		return fmt.Errorf("base is empty")
+	}
 	u, err := url.Parse(base)
 	if err != nil {
 		return fmt.Errorf("url parse \"%s\": %w", base, err)
-	}
-	if u.Path == "" {
-		u.Path = "/"
-	}
-	for _, element := range s {
-		u = u.JoinPath(fmt.Sprint(element))
 	}
 	r.URL = u
 	r.Host = r.URL.Host
 	return nil
 }
 
+// SetPath sets the URL path to p.
+func (r *Request) SetPath(p any) error {
+	path, err := helper.StringSlice(p)
+	if err != nil {
+		return err
+	}
+	for _, item := range path {
+		if err := r.JoinPath(item); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // JoinPath adds a path parameter to the request URL.
-func (r *Request) JoinPath(p any) {
-	r.URL = r.URL.JoinPath(fmt.Sprint(p))
+func (r *Request) JoinPath(p string) error {
+	if r.URL == nil {
+		return fmt.Errorf("request URL not initialized")
+	}
+	if r.URL.Path == "" {
+		r.URL.Path = "/"
+	}
+	r.URL = r.URL.JoinPath(p)
+	return nil
 }
 
 // SetQuery converts a map[string]any into a [url.Values] object and sets it as the URL query.
-func (r *Request) SetQuery(q map[string]any) {
-	if len(q) == 0 {
-		return
-	}
-	query := r.URL.Query()
-	for k, v := range q {
-		switch v := v.(type) {
-		case string:
-			query[k] = []string{v}
-		case []string:
-			query[k] = v
-		default:
-			s, _ := json.Marshal(v)
-			query[k] = []string{(string(s))}
-		}
+func (r *Request) SetQuery(q any) error {
+	query, err := helper.ToURLValues(q)
+	if err != nil {
+		return err
 	}
 	r.URL.RawQuery = query.Encode()
+	return nil
 }
 
 // SetHeader sets the value of a header field.
-func (r *Request) SetHeader(key string, value any) {
-	switch value := value.(type) {
-	case string:
-		r.Header.Set(key, value)
-	case []string:
-		for _, item := range value {
-			r.Header.Add(key, item)
-		}
-	default:
-		s, _ := json.Marshal(value)
-		r.Header.Set(key, string(s))
-	}
+func (r *Request) SetHeader(key string, value any) (err error) {
+	r.Header[key], err = helper.StringSlice(value)
+	return
 }
 
 // SetHeaders ranges over the hash map and calls [Request.SetHeader].
-func (r *Request) SetHeaders(h map[string]any) {
+func (r *Request) SetHeaders(h map[string]any) error {
 	for k, v := range h {
-		r.SetHeader(k, v)
-	}
-}
-
-// MultipartFile is an interface to attach a file into the multipart form.
-// [os.File] implements this interface.
-type MultipartFile interface {
-	Name() string
-	io.ReadCloser
-}
-
-// AddFormField fills a form field with a key defined by parent[child] or child if parent is empty and writes them into [multipart.Writer].
-// Accepted values: string, []byte, func() (MultipartFile, error), and map[string]any
-func AddFormField(writer *multipart.Writer, parent string, child string, v any) error {
-	var key string
-	if parent == "" {
-		key = child
-	} else {
-		key = fmt.Sprintf("%s[%s]", parent, child)
-	}
-	switch assertedValue := v.(type) {
-	case string:
-		if err := writer.WriteField(key, assertedValue); err != nil {
-			return fmt.Errorf("write field %s: %w", key, err)
+		if err := r.SetHeader(k, v); err != nil {
+			return fmt.Errorf("set header %s: %w", k, err)
 		}
-	case []byte:
-		subwriter, err := writer.CreateFormField(key)
-		if err != nil {
-			return fmt.Errorf("create form field %s: %w", key, err)
-		}
-		if _, err := subwriter.Write(assertedValue); err != nil {
-			return fmt.Errorf("write form field: %s: %w", key, err)
-		}
-	case func() (MultipartFile, error):
-		f, err := assertedValue()
-		if err != nil {
-			return fmt.Errorf("open form file: %s", err)
-		}
-		defer func() {
-			_ = f.Close()
-		}()
-		filename := filepath.Base(f.Name())
-		subwriter, err := writer.CreateFormFile(key, filename)
-		if err != nil {
-			return fmt.Errorf("create form file %s: %w", key, err)
-		}
-		if _, err := io.Copy(subwriter, f); err != nil {
-			return fmt.Errorf("copy to form file: %w", err)
-		}
-	case map[string]any:
-		for sub, v := range assertedValue {
-			if err := AddFormField(writer, key, sub, v); err != nil {
-				return err
-			}
-		}
-	default:
-		return fmt.Errorf("unsupported data type %s for key %s", reflect.TypeOf(v), key)
 	}
 	return nil
 }
 
-// CreateReadCloser constructs an [io.ReadCloser] from the a slice of byte characters.
-func CreateReadCloser(b []byte) io.ReadCloser {
-	return io.NopCloser(bytes.NewReader(b))
-}
-
-// MultipartForm is a combined representation of [bytes.Buffer] and [multipart.Writer], both essential for setting the body.
-type MultipartForm struct {
-	*bytes.Buffer
-	*multipart.Writer
-}
-
-// CreateMultipartForm constructs a [MultipartForm] from the given map[string]any.
-// See [AddFormField] for accepted values.
-func CreateMultipartForm(m map[string]any) (*MultipartForm, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	for k, v := range m {
-		if err := AddFormField(writer, "", k, v); err != nil {
-			return nil, err
-		}
-	}
-	if err := writer.Close(); err != nil {
-		return nil, fmt.Errorf("close multipart writer: %s", err)
-	}
-	return &MultipartForm{
-		Buffer: body,
-		Writer: writer,
-	}, nil
-}
-
-// SetBody sets the request body based on the current Content-Type of the Request.
-//
-// It automatically encodes the provided value `v` according to the media type:
-//
-// - "multipart/form-data": expects v to be a map[string]any and sets it as a multipart form.
-//
-// - "application/x-www-form-urlencoded": expects v to be a map[string]any and encodes it as form values.
-//
-// - "application/json": marshals v as JSON.
-//
-// Returns an error if the Content-Type is unsupported or if the input type doesn't match the expected format.
+// SetBody sets the request body based on the media type.
 func (r *Request) SetBody(v any) error {
-	mediaType := r.GetMediaType()
-	var body []byte
-	switch mediaType {
-	case "multipart/form-data":
-		m, ok := v.(map[string]any)
-		if !ok {
-			return fmt.Errorf("b must be map[string]any")
-		}
-		form, err := CreateMultipartForm(m)
-		if err != nil {
-			return err
-		}
-		body = form.Bytes()
-		r.SetHeader("Content-Type", form.FormDataContentType())
-	case "application/x-www-form-urlencoded":
-		values := make(url.Values)
-		m, ok := v.(map[string]any)
-		if !ok {
-			return fmt.Errorf("b must be map[string]any")
-		}
-		for k, v := range m {
-			switch v := v.(type) {
-			case string:
-				values[k] = []string{v}
-			case []string:
-				values[k] = v
-			default:
-				s, _ := json.Marshal(v)
-				values[k] = []string{string(s)}
-			}
-		}
-		body = []byte(values.Encode())
-	case "application/json":
-		body, _ = json.Marshal(v)
-	default:
-		if mediaType == "" {
-			return fmt.Errorf("unspecified content type")
-		} else {
-			return fmt.Errorf("content type \"%s\" not supported", mediaType)
-		}
+	result, err := helper.Marshal(helper.MarshalOptions{
+		MediaType: r.GetMediaType(),
+		Object:    v,
+	})
+	if err != nil {
+		return err
 	}
-	r.Body = body
-	r.ContentLength = int64(len(r.Body))
-	r.Request.Body = CreateReadCloser(r.Body)
-	r.GetBody = func() (io.ReadCloser, error) { return CreateReadCloser(r.Body), nil }
+	r.Header.Set("Content-Type", result.ContentType)
+	r.ContentLength = int64(len(result.Data))
+	r.Body = helper.CreateReadCloser(result.Data)
+	r.GetBody = func() (io.ReadCloser, error) { return helper.CreateReadCloser(result.Data), nil }
 	return nil
 }
 
-// Response is a wrapper around [http.Response] with an already read body.
-type Response struct {
-	Request        *Request       `json:"request,omitempty"`
-	Body           []byte         `json:"body,omitempty"`
-	BodyMap        map[string]any `json:"-"`
-	*http.Response `json:"-"`
+// MustGetBody returns a copy of the body reader. Panics on error.
+func (r *Request) MustGetBody() io.ReadCloser {
+	return helper.Must(r.GetBody())
 }
 
-// Map decodes the body into map[string]any.
-func (r *Response) Map() (map[string]any, error) {
-	if r.BodyMap != nil {
-		return r.BodyMap, nil
-	}
-	var b map[string]any
-	if err := r.JSON(&b); err != nil {
+// GetBodyBytes reads the body reader and returns the data.
+func (r *Request) GetBodyBytes() ([]byte, error) {
+	body, err := r.GetBody()
+	if err != nil {
 		return nil, err
 	}
-	r.BodyMap = b
-	return b, nil
+	return io.ReadAll(body)
+}
+
+// MustGetBodyBytes reads the body reader and returns the data. Panics on error.
+func (r *Request) MustGetBodyBytes() []byte {
+	return helper.Must(r.GetBodyBytes())
+}
+
+// Response is a wrapper around [http.Response] with a read body.
+type Response struct {
+	Request        *Request `json:"-,omitempty"`
+	Body           []byte   `json:"body,omitempty"`
+	*http.Response `json:"-"`
 }
 
 // JSON decodes the body and stores it into the value pointed by v.

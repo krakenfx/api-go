@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/derivatives"
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
 // Derivative contract.
@@ -20,7 +20,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, side := range [][][]*kraken.Money{resp.OrderBook.Asks, resp.OrderBook.Bids} {
+	for _, side := range [][][]*decimal.Decimal{resp.Result.OrderBook.Asks, resp.Result.OrderBook.Bids} {
 		for i := 9; i >= 0 && i < len(side); i-- {
 			fmt.Printf("%s - %s\n", side[i][0], side[i][1])
 		}

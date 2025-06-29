@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/krakenfx/api-go/pkg/kraken"
-	"github.com/krakenfx/api-go/pkg/spot"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/spot"
 )
 
 func main() {
@@ -18,19 +18,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Asset pair: %s\n", kraken.ToJSON(assetPair))
+	fmt.Printf("Asset pair: %s\n", helper.ToJSON(assetPair))
 	ticker, err := client.TickerSingle("BTC/USD")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Ticker: %s\n", kraken.ToJSON(ticker))
+	fmt.Printf("Ticker: %s\n", helper.ToJSON(ticker))
 	depth, err := client.OrderBook(&spot.OrderBookRequest{
 		Pair: "BTC/USD",
 	})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Depth: %s\n", kraken.ToJSONIndent(depth))
+	fmt.Printf("Depth: %s\n", helper.ToJSONIndent(depth))
 	ohlc, err := client.OHLC(&spot.OHLCRequest{
 		Pair:  "BTC/USD",
 		Since: int(time.Now().Add(-5 * time.Minute).Unix()),
@@ -38,5 +38,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("OHLC: %s\n", kraken.ToJSON(ohlc))
+	fmt.Printf("OHLC: %s\n", helper.ToJSON(ohlc))
 }

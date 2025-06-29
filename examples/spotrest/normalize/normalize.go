@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/spot"
+	"github.com/krakenfx/api-go/v2/pkg/spot"
 )
 
 func main() {
 	client := spot.NewREST()
 	client.BaseURL = os.Getenv("KRAKEN_API_SPOT_REST_URL")
-	assetManager := spot.NewAssetManager()
+	assetManager := spot.NewNormalizer()
 	if err := assetManager.Use(client); err != nil {
 		panic(err)
 	}

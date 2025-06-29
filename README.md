@@ -23,7 +23,7 @@ Key features include:
 
 To install the module in your Go project:
 ```bash
-go get github.com/krakenfx/api-go/...
+go get github.com/krakenfx/api-go/v2/...
 ```
 
 If you're interested in running examples or contributing to development, clone the repo and install dependencies:

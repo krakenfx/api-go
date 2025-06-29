@@ -8,45 +8,49 @@ import (
 	"sync"
 	"time"
 
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/book"
+	"github.com/krakenfx/api-go/v2/pkg/callback"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/kraken"
 )
 
 // BookManager manages the lifecycle of a collection of [Book] structs.
 type BookManager struct {
-	books        map[string]*Book
+	books        map[string]*book.Book
 	mux          sync.RWMutex
-	OnCreateBook *kraken.CallbackManager[*Book]
+	OnCreateBook *callback.Manager[*book.Book]
 }
 
 // NewBookManager constructs a new [BookManager] struct.
 func NewBookManager() *BookManager {
 	return &BookManager{
-		books:        make(map[string]*Book),
-		OnCreateBook: kraken.NewCallbackManager[*Book](),
+		books:        make(map[string]*book.Book),
+		OnCreateBook: callback.NewManager[*book.Book](),
 	}
 }
 
 // Update accepts a [kraken.WebSocketMessage] and processes an update.
-func (b *BookManager) Update(m *kraken.Event[*kraken.WebSocketMessage]) error {
+func (b *BookManager) Update(m *callback.Event[*kraken.WebSocketMessage]) error {
 	event, err := m.Data.Map()
 	if err != nil {
 		return err
 	}
-	method, err := kraken.Traverse[string](event, "method")
+	method, err := helper.Traverse[string](event, "method")
 	if err == nil && *method == "subscribe" {
-		channel, err := kraken.Traverse[string](event, "params", "channel")
+		channel, err := helper.Traverse[string](event, "params", "channel")
 		if err != nil {
 			return nil
 		}
 		if !slices.Contains([]string{"level3", "book"}, *channel) {
 			return nil
 		}
-		symbols, err := kraken.Traverse[[]any](event, "params", "symbol")
+		symbols, err := helper.Traverse[[]any](event, "params", "symbol")
 		if err != nil {
 			return err
 		}
 		var depthInt int64
-		depth, err := kraken.Traverse[json.Number](event, "params", "depth")
+		depth, err := helper.Traverse[json.Number](event, "params", "depth")
 		if err != nil {
 			depthInt = 10
 		} else {
@@ -60,11 +64,11 @@ func (b *BookManager) Update(m *kraken.Event[*kraken.WebSocketMessage]) error {
 		}
 		return nil
 	}
-	channel, err := kraken.Traverse[string](event, "channel")
+	channel, err := helper.Traverse[string](event, "channel")
 	if err != nil || !slices.Contains([]string{"level3", "book"}, *channel) {
 		return nil
 	}
-	updates, err := kraken.Traverse[[]any](event, "data")
+	updates, err := helper.Traverse[[]any](event, "data")
 	if err != nil {
 		return err
 	}
@@ -73,7 +77,7 @@ func (b *BookManager) Update(m *kraken.Event[*kraken.WebSocketMessage]) error {
 		if !ok {
 			return fmt.Errorf("assert \"%v\" as map[string]any failed", bookUpdate)
 		}
-		symbol, err := kraken.Traverse[string](bookUpdate, "symbol")
+		symbol, err := helper.Traverse[string](bookUpdate, "symbol")
 		if err != nil {
 			return err
 		}
@@ -96,12 +100,12 @@ func (b *BookManager) Update(m *kraken.Event[*kraken.WebSocketMessage]) error {
 }
 
 // CreateBook constructs a managed [Book] struct.
-func (b *BookManager) CreateBook(name string, depth int) *Book {
+func (b *BookManager) CreateBook(name string, depth int) *book.Book {
 	b.mux.Lock()
 	defer b.mux.Unlock()
 	nameUpper := strings.ToUpper(name)
-	book := NewBook()
-	book.Symbol = nameUpper
+	book := book.New()
+	book.Name = nameUpper
 	book.EnableMaxDepth = true
 	book.MaxDepth = depth
 	b.books[nameUpper] = book
@@ -110,7 +114,7 @@ func (b *BookManager) CreateBook(name string, depth int) *Book {
 }
 
 // GetBook returns the [Book] struct associated with the given symbol.
-func (b *BookManager) GetBook(symbol string) *Book {
+func (b *BookManager) GetBook(symbol string) *book.Book {
 	b.mux.RLock()
 	defer b.mux.RUnlock()
 	nameUpper := strings.ToUpper(symbol)
@@ -133,17 +137,17 @@ func (b *BookManager) GetBooks() []string {
 }
 
 // UpdateL2 processes a map into an L2 book and performs a checksum.
-func (b *BookManager) UpdateL2(book *Book, m map[string]any) error {
-	bids, err := kraken.Traverse[[]any](m, "bids")
+func (bm *BookManager) UpdateL2(b *book.Book, m map[string]any) error {
+	bids, err := helper.Traverse[[]any](m, "bids")
 	if err != nil {
 		return err
 	}
-	asks, err := kraken.Traverse[[]any](m, "asks")
+	asks, err := helper.Traverse[[]any](m, "asks")
 	if err != nil {
 		return err
 	}
 	var timestamp time.Time
-	timestampString, err := kraken.Traverse[string](m, "timestamp")
+	timestampString, err := helper.Traverse[string](m, "timestamp")
 	if err != nil {
 		timestamp = time.Now()
 	} else {
@@ -152,29 +156,29 @@ func (b *BookManager) UpdateL2(book *Book, m map[string]any) error {
 			return fmt.Errorf("timestamp parse: %w", err)
 		}
 	}
-	sides := map[kraken.BookDirection][]any{
-		kraken.Bid: *bids,
-		kraken.Ask: *asks,
+	sides := map[book.BookDirection][]any{
+		book.Bid: *bids,
+		book.Ask: *asks,
 	}
 	for direction, records := range sides {
 		for _, record := range records {
-			price, err := kraken.Traverse[json.Number](record, "price")
+			price, err := helper.Traverse[json.Number](record, "price")
 			if err != nil {
 				return err
 			}
-			priceMoney, err := kraken.NewMoneyFromString(price.String())
+			priceMoney, err := decimal.NewFromString(price.String())
 			if err != nil {
 				return fmt.Errorf("price: %w", err)
 			}
-			quantity, err := kraken.Traverse[json.Number](record, "qty")
+			quantity, err := helper.Traverse[json.Number](record, "qty")
 			if err != nil {
 				return err
 			}
-			priceQuantity, err := kraken.NewMoneyFromString(quantity.String())
+			priceQuantity, err := decimal.NewFromString(quantity.String())
 			if err != nil {
 				return fmt.Errorf("quantity: %w", err)
 			}
-			book.Update(&kraken.BookUpdateOptions{
+			b.Update(&book.UpdateOptions{
 				Direction: direction,
 				Price:     priceMoney,
 				Quantity:  priceQuantity,
@@ -182,45 +186,45 @@ func (b *BookManager) UpdateL2(book *Book, m map[string]any) error {
 			})
 		}
 	}
-	serverChecksum, err := kraken.Traverse[json.Number](m, "checksum")
+	serverChecksum, err := helper.Traverse[json.Number](m, "checksum")
 	if err != nil {
 		return err
 	}
-	if result := book.L2Checksum(serverChecksum.String()); !result.Match {
+	if result := b.L2Checksum(serverChecksum.String()); !result.Match {
 		return fmt.Errorf("checksum failed, server \"%s\" versus local \"%s\"", result.ServerChecksum, result.LocalChecksum)
 	}
 	return nil
 }
 
 // UpdateL3 processes a map into an L3 book and performs a checksum.
-func (b *BookManager) UpdateL3(book *Book, m map[string]any) error {
-	bids, err := kraken.Traverse[[]any](m, "bids")
+func (bm *BookManager) UpdateL3(b *book.Book, m map[string]any) error {
+	bids, err := helper.Traverse[[]any](m, "bids")
 	if err != nil {
 		return err
 	}
-	asks, err := kraken.Traverse[[]any](m, "asks")
+	asks, err := helper.Traverse[[]any](m, "asks")
 	if err != nil {
 		return err
 	}
-	sides := map[kraken.BookDirection][]any{
-		kraken.Bid: *bids,
-		kraken.Ask: *asks,
+	sides := map[book.BookDirection][]any{
+		book.Bid: *bids,
+		book.Ask: *asks,
 	}
 	for direction, records := range sides {
 		for _, record := range records {
-			id, err := kraken.Traverse[string](record, "order_id")
+			id, err := helper.Traverse[string](record, "order_id")
 			if err != nil {
 				return err
 			}
-			price, err := kraken.Traverse[json.Number](record, "limit_price")
+			price, err := helper.Traverse[json.Number](record, "limit_price")
 			if err != nil {
 				return err
 			}
-			priceMoney, err := kraken.NewMoneyFromString(price.String())
+			priceDecimal, err := decimal.NewFromString(price.String())
 			if err != nil {
 				return fmt.Errorf("price: %w", err)
 			}
-			timestampString, err := kraken.Traverse[string](record, "timestamp")
+			timestampString, err := helper.Traverse[string](record, "timestamp")
 			if err != nil {
 				return err
 			}
@@ -228,46 +232,33 @@ func (b *BookManager) UpdateL3(book *Book, m map[string]any) error {
 			if err != nil {
 				return fmt.Errorf("time parse: %w", err)
 			}
-			event, _ := kraken.Traverse[string](record, "event")
-			quantityMoney := kraken.NewMoneyFromInt64(0)
+			event, _ := helper.Traverse[string](record, "event")
+			quantityDecimal := decimal.NewFromInt64(0)
 			if event == nil || *event != "delete" {
-				quantity, err := kraken.Traverse[json.Number](record, "order_qty")
+				quantity, err := helper.Traverse[json.Number](record, "order_qty")
 				if err != nil {
 					return err
 				}
-				quantityMoney, err = kraken.NewMoneyFromString(quantity.String())
+				quantityDecimal, err = decimal.NewFromString(quantity.String())
 				if err != nil {
 					return fmt.Errorf("quantity: %w", err)
 				}
 			}
-			book.Update(&kraken.BookUpdateOptions{
+			b.Update(&book.UpdateOptions{
 				Direction: direction,
 				ID:        *id,
-				Price:     priceMoney,
-				Quantity:  quantityMoney,
+				Price:     priceDecimal,
+				Quantity:  quantityDecimal,
 				Timestamp: timestamp,
 			})
 		}
 	}
-	serverChecksum, err := kraken.Traverse[json.Number](m, "checksum")
+	serverChecksum, err := helper.Traverse[json.Number](m, "checksum")
 	if err != nil {
 		return err
 	}
-	if result := book.L3Checksum(serverChecksum.String()); !result.Match {
+	if result := b.L3Checksum(serverChecksum.String()); !result.Match {
 		return fmt.Errorf("checksum failed, server \"%s\" versus local \"%s\"", result.ServerChecksum, result.LocalChecksum)
 	}
 	return nil
-}
-
-// Book wraps a [kraken.Book] struct with a symbol field.
-type Book struct {
-	Symbol string
-	*kraken.Book
-}
-
-// NewBook constructs a new [Book] struct with default values.
-func NewBook() *Book {
-	return &Book{
-		Book: kraken.NewBook(),
-	}
 }

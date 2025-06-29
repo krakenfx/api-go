@@ -5,8 +5,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/krakenfx/api-go/pkg/derivatives"
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/book"
+	"github.com/krakenfx/api-go/v2/pkg/callback"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
+	"github.com/krakenfx/api-go/v2/pkg/kraken"
 )
 
 var contract string = "PF_XBTUSD"
@@ -16,25 +19,25 @@ func main() {
 	client.URL = os.Getenv("KRAKEN_API_FUTURES_WS_URL")
 	client.REST.BaseURL = os.Getenv("KRAKEN_API_FUTURES_REST_URL")
 	bookManager := derivatives.NewBookManager()
-	bookManager.OnCreateBook.Recurring(func(e *kraken.Event[*derivatives.Book]) {
-		book := e.Data
-		fmt.Printf("Create book: %s\n", book.Symbol)
-		book.OnUpdated.Recurring(func(e *kraken.Event[*kraken.BookUpdateOptions]) {
-			fmt.Printf("%s: %s\n", book.Symbol, kraken.ToJSON(e.Data))
+	bookManager.OnCreateBook.Recurring(func(e *callback.Event[*book.Book]) {
+		b := e.Data
+		fmt.Printf("Create book: %s\n", b.Name)
+		b.OnUpdated.Recurring(func(e *callback.Event[*book.UpdateOptions]) {
+			fmt.Printf("%s: %s\n", b.Name, helper.ToJSON(e.Data))
 		})
-		book.OnBookCrossed.Recurring(func(e *kraken.Event[*kraken.BookCrossedResult]) {
-			fmt.Printf("%s: %s\\n", book.Symbol, kraken.ToJSON(e.Data))
+		b.OnBookCrossed.Recurring(func(e *callback.Event[*book.CrossedResult]) {
+			fmt.Printf("%s: %s\\n", b.Name, helper.ToJSON(e.Data))
 		})
 	})
-	client.OnSent.Recurring(func(e *kraken.Event[*kraken.WebSocketMessage]) {
+	client.OnSent.Recurring(func(e *callback.Event[*kraken.WebSocketMessage]) {
 		fmt.Printf("Sent: %s\n", e.Data)
 	})
-	client.OnReceived.Recurring(func(e *kraken.Event[*kraken.WebSocketMessage]) {
+	client.OnReceived.Recurring(func(e *callback.Event[*kraken.WebSocketMessage]) {
 		if err := bookManager.Update(e); err != nil {
 			panic(err)
 		}
 	})
-	client.OnConnected.Recurring(func(e *kraken.Event[any]) {
+	client.OnConnected.Recurring(func(e *callback.Event[any]) {
 		if err := client.SubBook(contract); err != nil {
 			panic(err)
 		}

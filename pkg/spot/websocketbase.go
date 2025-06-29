@@ -3,14 +3,16 @@ package spot
 import (
 	"fmt"
 
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/internal/helper"
+	"github.com/krakenfx/api-go/v2/pkg/callback"
+	"github.com/krakenfx/api-go/v2/pkg/kraken"
 )
 
 // WebSocketBase is the underlying of the [WebSocket] client.
 type WebSocketBase struct {
 	REST            *REST
 	Token           string
-	OnAuthenticated *kraken.CallbackManager[string]
+	OnAuthenticated *callback.Manager[string]
 	*kraken.WebSocket
 }
 
@@ -18,7 +20,7 @@ type WebSocketBase struct {
 func NewWebSocketBase() *WebSocketBase {
 	b := &WebSocketBase{
 		REST:            NewREST(),
-		OnAuthenticated: kraken.NewCallbackManager[string](),
+		OnAuthenticated: callback.NewManager[string](),
 		WebSocket:       kraken.NewWebSocket(),
 	}
 	b.URL = "wss://ws.kraken.com/v2"
@@ -43,7 +45,7 @@ func (b *WebSocketBase) SendPublic(m map[string]any) error {
 
 // SendPrivate submits a JSON-encoded map with the token included.
 func (b *WebSocketBase) SendPrivate(m map[string]any) error {
-	return b.WriteJSON(kraken.Maps(map[string]any{
+	return b.WriteJSON(helper.Maps(map[string]any{
 		"params": map[string]any{
 			"token": b.Token,
 		},
@@ -52,7 +54,7 @@ func (b *WebSocketBase) SendPrivate(m map[string]any) error {
 
 // SubPublic submits a subscription request.
 func (b *WebSocketBase) SubPublic(channel string, options ...map[string]any) error {
-	return b.SendPublic(kraken.Maps(map[string]any{
+	return b.SendPublic(helper.Maps(map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
 			"channel": channel,
@@ -62,7 +64,7 @@ func (b *WebSocketBase) SubPublic(channel string, options ...map[string]any) err
 
 // SubPrivate submits a subscription request with the token included.
 func (b *WebSocketBase) SubPrivate(channel string, options ...map[string]any) error {
-	return b.SendPrivate(kraken.Maps(map[string]any{
+	return b.SendPrivate(helper.Maps(map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
 			"channel": channel,

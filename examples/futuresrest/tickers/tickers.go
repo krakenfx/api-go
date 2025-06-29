@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/derivatives"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, ticker := range resp.Tickers {
+	for _, ticker := range resp.Result.Tickers {
 		fmt.Printf("Symbol: %s, Bid: %s, Ask: %s, Mark: %s, Index: %s\n", ticker.Symbol, ticker.Bid, ticker.Ask, ticker.MarkPrice, ticker.IndexPrice)
 	}
 }

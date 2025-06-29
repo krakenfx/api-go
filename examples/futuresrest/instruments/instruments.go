@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/pkg/derivatives"
-	"github.com/krakenfx/api-go/pkg/kraken"
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
 func main() {
@@ -15,12 +15,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, instrument := range resp.Instruments {
+	for _, instrument := range resp.Result.Instruments {
 		fmt.Printf("Symbol: %s", instrument.Symbol)
 		fmt.Printf(", Lot decimals: %s", instrument.ContractValueTradePrecision)
 		fmt.Printf(", Tick size: %s", instrument.TickSize)
 		if instrument.MaxRelativeFundingRate != nil {
-			fmt.Printf(", Max funding rate: %s%%", instrument.MaxRelativeFundingRate.Mul(kraken.NewMoneyFromInt64(100)))
+			fmt.Printf(", Max funding rate: %s%%", instrument.MaxRelativeFundingRate.Mul(decimal.NewFromInt64(100)))
 		}
 		fmt.Printf("\n")
 	}

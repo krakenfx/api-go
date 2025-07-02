@@ -1,6 +1,7 @@
 package derivatives
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/krakenfx/api-go/v2/pkg/decimal"
@@ -74,9 +75,46 @@ type TickerData struct {
 	Change24h             *decimal.Decimal `json:"change24h,omitempty"`
 }
 
-type OrderBook struct {
+type JSONOrderBook struct {
 	Asks [][]*decimal.Decimal `json:"asks,omitempty"`
 	Bids [][]*decimal.Decimal `json:"bids,omitempty"`
+}
+
+func (job JSONOrderBook) OrderBook() (book OrderBook) {
+	book.Asks = make([]PriceLevel, len(job.Asks))
+	for i, ask := range job.Asks {
+		book.Asks[i] = PriceLevel{
+			Price:  ask[0],
+			Volume: ask[1],
+		}
+	}
+	book.Bids = make([]PriceLevel, len(job.Bids))
+	for i, bid := range job.Bids {
+		book.Bids[i] = PriceLevel{
+			Price:  bid[0],
+			Volume: bid[1],
+		}
+	}
+	return
+}
+
+type OrderBook struct {
+	Asks []PriceLevel `json:"asks,omitempty"`
+	Bids []PriceLevel `json:"bids,omitempty"`
+}
+
+func (ob *OrderBook) UnmarshalJSON(data []byte) error {
+	var v JSONOrderBook
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*ob = v.OrderBook()
+	return nil
+}
+
+type PriceLevel struct {
+	Price  *decimal.Decimal `json:"price,omitempty"`
+	Volume *decimal.Decimal `json:"volume,omitempty"`
 }
 
 type Trade struct {

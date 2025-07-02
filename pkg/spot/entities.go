@@ -1,6 +1,11 @@
 package spot
 
-import "github.com/krakenfx/api-go/v2/pkg/decimal"
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/krakenfx/api-go/v2/pkg/decimal"
+)
 
 type FullName struct {
 	FirstName  string `json:"first_name,omitempty"`
@@ -23,19 +28,19 @@ type Residence struct {
 }
 
 type UserInfo struct {
-	Email              string     `json:"email,omitempty"`
-	ExternalID         string     `json:"external_id,omitempty"`
-	TOSVersionAccepted int        `json:"tos_version_accepted,omitempty"`
-	FullName           *FullName  `json:"full_name,omitempty"`
-	DateOfBirth        string     `json:"date_of_birth,omitempty"`
-	Residence          *Residence `json:"residence,omitempty"`
-	Phone              string     `json:"phone,omitempty"`
-	Nationalities      []string   `json:"nationalities,omitempty"`
-	Occupation         string     `json:"occupation,omitempty"`
-	CityOfBirth        string     `json:"city_of_birth,omitempty"`
-	CountryOfBirth     string     `json:"country_of_birth,omitempty"`
-	TaxIDs             []*TaxID   `json:"tax_ids,omitempty"`
-	Language           string     `json:"language,omitempty"`
+	Email              string    `json:"email,omitempty"`
+	ExternalID         string    `json:"external_id,omitempty"`
+	TOSVersionAccepted int       `json:"tos_version_accepted,omitempty"`
+	FullName           FullName  `json:"full_name,omitempty"`
+	DateOfBirth        string    `json:"date_of_birth,omitempty"`
+	Residence          Residence `json:"residence,omitempty"`
+	Phone              string    `json:"phone,omitempty"`
+	Nationalities      []string  `json:"nationalities,omitempty"`
+	Occupation         string    `json:"occupation,omitempty"`
+	CityOfBirth        string    `json:"city_of_birth,omitempty"`
+	CountryOfBirth     string    `json:"country_of_birth,omitempty"`
+	TaxIDs             []TaxID   `json:"tax_ids,omitempty"`
+	Language           string    `json:"language,omitempty"`
 }
 
 type ActionDetailsType struct {
@@ -53,14 +58,14 @@ type UserRequiredAction struct {
 }
 
 type UserStatus struct {
-	State           string                `json:"state,omitempty"`
-	Reasons         []string              `json:"reasons,omitempty"`
-	RequiredActions []*UserRequiredAction `json:"required_actions,omitempty"`
+	State           string               `json:"state,omitempty"`
+	Reasons         []string             `json:"reasons,omitempty"`
+	RequiredActions []UserRequiredAction `json:"required_actions,omitempty"`
 }
 
 type Identity struct {
-	FullName    *FullName `json:"full_name,omitempty"`
-	DateOfBirth string    `json:"date_of_birth,omitempty"`
+	FullName    FullName `json:"full_name,omitempty"`
+	DateOfBirth string   `json:"date_of_birth,omitempty"`
 }
 
 type Watchlist struct {
@@ -73,7 +78,7 @@ type Watchlist struct {
 }
 
 type VerificationMetadata struct {
-	Identity               *Identity  `json:"identity,omitempty"`
+	Identity               Identity   `json:"identity,omitempty"`
 	Address                *Residence `json:"address,omitempty"`
 	Sanctions              *Watchlist `json:"sanctions,omitempty"`
 	NegativeNews           *Watchlist `json:"negative_news,omitempty"`
@@ -205,7 +210,7 @@ type AssetInfo struct {
 	Status          string           `json:"status,omitempty"`
 }
 
-type AssetPair struct {
+type JSONAssetPair struct {
 	AltName            string               `json:"altname,omitempty"`
 	WSName             string               `json:"wsname,omitempty"`
 	BaseAssetClass     string               `json:"aclass_base,omitempty"`
@@ -231,6 +236,88 @@ type AssetPair struct {
 	ShortPositionLimit int                  `json:"short_position_limit,omitempty"`
 }
 
+func (jap JSONAssetPair) AssetPair() AssetPair {
+	fees := make([]Fee, len(jap.Fees))
+	for i, fee := range jap.Fees {
+		fees[i] = Fee{
+			Volume:  fee[0],
+			Percent: fee[1],
+		}
+	}
+	feesMaker := make([]Fee, len(jap.FeesMaker))
+	for i, fee := range jap.FeesMaker {
+		feesMaker[i] = Fee{
+			Volume:  fee[0],
+			Percent: fee[1],
+		}
+	}
+	return AssetPair{
+		AltName:            jap.AltName,
+		WSName:             jap.WSName,
+		BaseAssetClass:     jap.BaseAssetClass,
+		Base:               jap.Base,
+		QuoteAssetClass:    jap.QuoteAssetClass,
+		Quote:              jap.Quote,
+		PairDecimals:       jap.PairDecimals,
+		CostDecimals:       jap.CostDecimals,
+		LotDecimals:        jap.LotDecimals,
+		LotMultiplier:      jap.LotMultiplier,
+		BuyLeverage:        jap.BuyLeverage,
+		SellLeverage:       jap.SellLeverage,
+		Fees:               fees,
+		FeesMaker:          feesMaker,
+		FeeVolumeCurrency:  jap.FeeVolumeCurrency,
+		MarginCall:         jap.MarginCall,
+		MarginStop:         jap.MarginStop,
+		OrderMinimum:       jap.OrderMinimum,
+		CostMinimum:        jap.CostMinimum,
+		TickSize:           jap.TickSize,
+		Status:             jap.Status,
+		LongPositionLimit:  jap.LongPositionLimit,
+		ShortPositionLimit: jap.ShortPositionLimit,
+	}
+}
+
+type AssetPair struct {
+	AltName            string           `json:"altname,omitempty"`
+	WSName             string           `json:"wsname,omitempty"`
+	BaseAssetClass     string           `json:"aclass_base,omitempty"`
+	Base               string           `json:"base,omitempty"`
+	QuoteAssetClass    string           `json:"aclass_quote,omitempty"`
+	Quote              string           `json:"quote,omitempty"`
+	PairDecimals       int              `json:"pair_decimals,omitempty"`
+	CostDecimals       int              `json:"cost_decimals,omitempty"`
+	LotDecimals        int              `json:"lot_decimals,omitempty"`
+	LotMultiplier      int              `json:"lot_multiplier,omitempty"`
+	BuyLeverage        []int            `json:"leverage_buy,omitempty"`
+	SellLeverage       []int            `json:"leverage_sell,omitempty"`
+	Fees               []Fee            `json:"fees,omitempty"`
+	FeesMaker          []Fee            `json:"fees_maker,omitempty"`
+	FeeVolumeCurrency  string           `json:"fee_volume_currency,omitempty"`
+	MarginCall         int              `json:"margin_call,omitempty"`
+	MarginStop         int              `json:"margin_stop,omitempty"`
+	OrderMinimum       *decimal.Decimal `json:"ordermin,omitempty"`
+	CostMinimum        *decimal.Decimal `json:"costmin,omitempty"`
+	TickSize           *decimal.Decimal `json:"tick_size,omitempty"`
+	Status             string           `json:"status,omitempty"`
+	LongPositionLimit  int              `json:"long_position_limit,omitempty"`
+	ShortPositionLimit int              `json:"short_position_limit,omitempty"`
+}
+
+func (ap *AssetPair) UnmarshalJSON(data []byte) error {
+	var v JSONAssetPair
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*ap = v.AssetPair()
+	return nil
+}
+
+type Fee struct {
+	Volume  *decimal.Decimal `json:"volume,omitempty"`
+	Percent *decimal.Decimal `json:"percent_fee,omitempty"`
+}
+
 type AssetTickerInfo struct {
 	Ask    []*decimal.Decimal `json:"a,omitempty"`
 	Bid    []*decimal.Decimal `json:"b,omitempty"`
@@ -243,9 +330,49 @@ type AssetTickerInfo struct {
 	Open   *decimal.Decimal   `json:"o,omitempty"`
 }
 
-type OrderBook struct {
+type JSONOrderBook struct {
 	Asks [][]*decimal.Decimal `json:"asks,omitempty"`
 	Bids [][]*decimal.Decimal `json:"bids,omitempty"`
+}
+
+func (job JSONOrderBook) OrderBook() (book OrderBook) {
+	book.Asks = make([]PriceLevel, len(job.Asks))
+	for i, ask := range job.Asks {
+		book.Asks[i] = PriceLevel{
+			Price:     ask[0],
+			Volume:    ask[1],
+			Timestamp: time.Unix(ask[2].Int64(), 0),
+		}
+	}
+	book.Bids = make([]PriceLevel, len(job.Bids))
+	for i, bid := range job.Bids {
+		book.Bids[i] = PriceLevel{
+			Price:     bid[0],
+			Volume:    bid[1],
+			Timestamp: time.Unix(bid[2].Int64(), 0),
+		}
+	}
+	return
+}
+
+type OrderBook struct {
+	Asks []PriceLevel `json:"asks,omitempty"`
+	Bids []PriceLevel `json:"bids,omitempty"`
+}
+
+func (ob *OrderBook) UnmarshalJSON(data []byte) error {
+	var v JSONOrderBook
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*ob = v.OrderBook()
+	return nil
+}
+
+type PriceLevel struct {
+	Price     *decimal.Decimal `json:"price,omitempty"`
+	Volume    *decimal.Decimal `json:"volume,omitempty"`
+	Timestamp time.Time        `json:"timestamp,omitempty"`
 }
 
 type DepositMethod struct {
@@ -264,19 +391,60 @@ type DepositAddress struct {
 	Tag      string `json:"tag,omitempty"`
 }
 
+type JSONDepositStatus struct {
+	Method      string           `json:"method,omitempty"`
+	Aclass      string           `json:"aclass,omitempty"`
+	Asset       string           `json:"asset,omitempty"`
+	RefID       string           `json:"refid,omitempty"`
+	TxID        string           `json:"txid,omitempty"`
+	Info        string           `json:"info,omitempty"`
+	Amount      *decimal.Decimal `json:"amount,omitempty"`
+	Fee         *decimal.Decimal `json:"fee,omitempty"`
+	Time        int              `json:"time,omitempty"`
+	Status      string           `json:"status,omitempty"`
+	StatusProp  string           `json:"status-prop,omitempty"`
+	Originators []string         `json:"originators,omitempty"`
+}
+
+func (jds JSONDepositStatus) DepositStatus() DepositStatus {
+	return DepositStatus{
+		Method:      jds.Method,
+		Aclass:      jds.Aclass,
+		Asset:       jds.Asset,
+		RefID:       jds.RefID,
+		TxID:        jds.TxID,
+		Info:        jds.Info,
+		Amount:      jds.Amount,
+		Fee:         jds.Fee,
+		Time:        time.Unix(int64(jds.Time), 0),
+		Status:      jds.Status,
+		StatusProp:  jds.StatusProp,
+		Originators: jds.Originators,
+	}
+}
+
 type DepositStatus struct {
-	Method      string   `json:"method,omitempty"`
-	Aclass      string   `json:"aclass,omitempty"`
-	Asset       string   `json:"asset,omitempty"`
-	Refid       string   `json:"refid,omitempty"`
-	Txid        string   `json:"txid,omitempty"`
-	Info        string   `json:"info,omitempty"`
-	Amount      string   `json:"amount,omitempty"`
-	Fee         string   `json:"fee,omitempty"`
-	Time        int64    `json:"time,omitempty"`
-	Status      string   `json:"status,omitempty"`
-	StatusProp  string   `json:"status-prop,omitempty"`
-	Originators []string `json:"originators,omitempty"`
+	Method      string           `json:"method,omitempty"`
+	Aclass      string           `json:"aclass,omitempty"`
+	Asset       string           `json:"asset,omitempty"`
+	RefID       string           `json:"refid,omitempty"`
+	TxID        string           `json:"txid,omitempty"`
+	Info        string           `json:"info,omitempty"`
+	Amount      *decimal.Decimal `json:"amount,omitempty"`
+	Fee         *decimal.Decimal `json:"fee,omitempty"`
+	Time        time.Time        `json:"time,omitempty"`
+	Status      string           `json:"status,omitempty"`
+	StatusProp  string           `json:"status-prop,omitempty"`
+	Originators []string         `json:"originators,omitempty"`
+}
+
+func (ds *DepositStatus) UnmarshalJSON(data []byte) error {
+	var v JSONDepositStatus
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*ds = v.DepositStatus()
+	return nil
 }
 
 type WithdrawMethod struct {
@@ -322,15 +490,15 @@ type EarnStrategyAPR struct {
 	High string `json:"high,omitempty"`
 }
 type EarnStrategyLockType struct {
-	Type                    string           `json:"type,omitempty"`
-	BondingPeriod           *decimal.Decimal `json:"bonding_period,omitempty"`
-	BondingPeriodVariable   bool             `json:"bonding_period_variable,omitempty"`
-	BondingRewards          bool             `json:"bonding_rewards,omitempty"`
-	ExitQueuePeriod         *decimal.Decimal `json:"exit_queue_period"`
-	PayoutFrequency         *decimal.Decimal `json:"payout_frequency,omitempty"`
-	UnbondingPeriod         *decimal.Decimal `json:"unbonding_period,omitempty"`
-	UnbondingPeriodVariable bool             `json:"unbonding_period_variable,omitempty"`
-	UnbondingRewards        bool             `json:"unbonding_rewards,omitempty"`
+	Type                    string `json:"type,omitempty"`
+	BondingPeriod           int    `json:"bonding_period,omitempty"`
+	BondingPeriodVariable   bool   `json:"bonding_period_variable,omitempty"`
+	BondingRewards          bool   `json:"bonding_rewards,omitempty"`
+	ExitQueuePeriod         int    `json:"exit_queue_period"`
+	PayoutFrequency         int    `json:"payout_frequency,omitempty"`
+	UnbondingPeriod         int    `json:"unbonding_period,omitempty"`
+	UnbondingPeriodVariable bool   `json:"unbonding_period_variable,omitempty"`
+	UnbondingRewards        bool   `json:"unbonding_rewards,omitempty"`
 }
 
 type EarnStrategyYieldSource struct {
@@ -347,7 +515,7 @@ type EarnStrategy struct {
 	Asset                     string                   `json:"asset,omitempty"`
 	LockType                  EarnStrategyLockType     `json:"lock_type,omitempty"`
 	AprEstimate               *EarnStrategyAPR         `json:"apr_estimate,omitempty"`
-	UserMinAllocation         string                   `json:"user_min_allocation,omitempty"`
+	UserMinAllocation         *decimal.Decimal         `json:"user_min_allocation,omitempty"`
 	AllocationFee             *decimal.Decimal         `json:"allocation_fee,omitempty"`
 	DeallocationFee           *decimal.Decimal         `json:"deallocation_fee,omitempty"`
 	AutoCompound              EarnStrategyAutoCompound `json:"auto_compound,omitempty"`
@@ -358,38 +526,38 @@ type EarnStrategy struct {
 }
 
 type EarnAllocationReward struct {
-	Native    string `json:"native"`
-	Converted string `json:"converted"`
+	Native    *decimal.Decimal `json:"native"`
+	Converted *decimal.Decimal `json:"converted"`
 }
 type EarnAllocationAmountState struct {
-	Native          string                       `json:"native,omitempty"`
-	Converted       string                       `json:"converted,omitempty"`
-	AllocationCount int                          `json:"allocation_count,omitempty"`
-	Allocations     []*EarnAllocationStateDetail `json:"allocations,omitempty"`
+	Native          *decimal.Decimal            `json:"native,omitempty"`
+	Converted       *decimal.Decimal            `json:"converted,omitempty"`
+	AllocationCount int                         `json:"allocation_count,omitempty"`
+	Allocations     []EarnAllocationStateDetail `json:"allocations,omitempty"`
 }
 type EarnAllocationStateDetail struct {
-	Native    string `json:"native,omitempty"`
-	Converted string `json:"converted,omitempty"`
-	CreatedAt string `json:"created_at,omitempty"`
-	Expires   string `json:"expires,omitempty"`
+	Native    string    `json:"native,omitempty"`
+	Converted time.Time `json:"converted,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	Expires   time.Time `json:"expires,omitempty"`
 }
 type EarnAllocationAmount struct {
-	Bonding   *EarnAllocationAmountState `json:"bonding,omitempty"`
-	ExitQueue *EarnAllocationAmountState `json:"exit_queue,omitempty"`
-	Pending   *EarnAllocationAmountState `json:"pending,omitempty"`
-	Total     *EarnAllocationAmountState `json:"total,omitempty"`
-	Unbonding *EarnAllocationAmountState `json:"unbonding,omitempty"`
+	Bonding   EarnAllocationAmountState `json:"bonding,omitempty"`
+	ExitQueue EarnAllocationAmountState `json:"exit_queue,omitempty"`
+	Pending   EarnAllocationAmountState `json:"pending,omitempty"`
+	Total     EarnAllocationAmountState `json:"total,omitempty"`
+	Unbonding EarnAllocationAmountState `json:"unbonding,omitempty"`
 }
 type EarnAllocationPayout struct {
-	AccumulatedReward *EarnAllocationReward `json:"accumulated_reward,omitempty"`
-	EstimatedReward   *EarnAllocationReward `json:"estimated_reward,omitempty"`
-	PeriodStart       string                `json:"period_start,omitempty"`
-	PeriodEnd         string                `json:"period_end,omitempty"`
+	AccumulatedReward EarnAllocationReward `json:"accumulated_reward,omitempty"`
+	EstimatedReward   EarnAllocationReward `json:"estimated_reward,omitempty"`
+	PeriodStart       string               `json:"period_start,omitempty"`
+	PeriodEnd         string               `json:"period_end,omitempty"`
 }
 type EarnAllocation struct {
-	StrategyID      string                `json:"strategy_id,omitempty"`
-	NativeAsset     string                `json:"native_asset,omitempty"`
-	AmountAllocated EarnAllocationAmount  `json:"amount_allocated,omitempty"`
-	TotalRewarded   EarnAllocationReward  `json:"total_rewarded,omitempty"`
-	Payout          *EarnAllocationPayout `json:"payout,omitempty"`
+	StrategyID      string               `json:"strategy_id,omitempty"`
+	NativeAsset     string               `json:"native_asset,omitempty"`
+	AmountAllocated EarnAllocationAmount `json:"amount_allocated,omitempty"`
+	TotalRewarded   EarnAllocationReward `json:"total_rewarded,omitempty"`
+	Payout          EarnAllocationPayout `json:"payout,omitempty"`
 }

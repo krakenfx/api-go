@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakenfx/api-go/v2/pkg/decimal"
+	"github.com/krakenfx/api-go/v2/internal/helper"
 	"github.com/krakenfx/api-go/v2/pkg/derivatives"
 )
 
@@ -20,9 +20,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, side := range [][][]*decimal.Decimal{resp.Result.OrderBook.Asks, resp.Result.OrderBook.Bids} {
+	for _, side := range [][]derivatives.PriceLevel{resp.Result.OrderBook.Asks, resp.Result.OrderBook.Bids} {
 		for i := 9; i >= 0 && i < len(side); i-- {
-			fmt.Printf("%s - %s\n", side[i][0], side[i][1])
+			fmt.Println(helper.ToJSON(side[i]))
 		}
 		fmt.Printf("---\n")
 	}

@@ -1,12 +1,12 @@
 module github.com/krakenfx/api-go/v2
 
-go 1.23.2
+go 1.24.0
 
 require github.com/gorilla/websocket v1.5.3
 
 require github.com/google/uuid v1.6.0
 
-require golang.org/x/sync v0.16.0
+require golang.org/x/sync v0.18.0
 
 require (
 	golang.org/x/net v0.43.0

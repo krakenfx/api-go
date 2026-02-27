@@ -144,13 +144,16 @@ func (ws *WebSocket) read() {
 // Disconnect stops the connection.
 func (ws *WebSocket) Disconnect() error {
 	ws.DoReconnect = false
-	done := make(chan bool)
-	defer close(done)
+	done := make(chan bool, 1)  // buffered — safe to send even if nobody is reading
+	// no defer close(done)    — never close a channel you're still sending to
 	defer func() {
 		_ = ws.conn.Close()
 	}()
 	callback := ws.OnDisconnected.Recurring(func(e *callback.Event[error]) {
-		done <- true
+		select {
+		case done <- true:     // non-blocking: harmless if already sent
+		default:
+		}
 	})
 	message := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")
 	if err := ws.WriteMessage(websocket.CloseMessage, message); err != nil {

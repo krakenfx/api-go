@@ -8,10 +8,15 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
+	"time"
 	"github.com/krakenfx/api-go/v2/internal/helper"
 	"golang.org/x/net/http2"
 )
+
+var defaultHTTPClient = &http.Client{
+  Transport: &http2.Transport{},
+  Timeout: 30 * time.Second,
+}
 
 // Request is a wrapper around [http.Request] to assist with internal functions.
 type Request struct {
@@ -31,9 +36,7 @@ func NewRequest() *Request {
 			Body:    http.NoBody,
 			GetBody: func() (io.ReadCloser, error) { return http.NoBody, nil },
 		},
-		Executor: (&http.Client{
-			Transport: &http2.Transport{},
-		}).Do,
+		Executor: defaultHTTPClient.Do,
 	}
 }
 
@@ -113,7 +116,10 @@ func (r *Request) Do() (resp *Response, err error) {
 	if err != nil {
 		return resp, err
 	}
-	defer func() {
+	  if response == nil {
+    return resp, fmt.Errorf("executor returned a nil response")
+  }
+defer func() {
 		_ = response.Body.Close()
 	}()
 	body, err := io.ReadAll(response.Body)
@@ -126,7 +132,10 @@ func (r *Request) Do() (resp *Response, err error) {
 		Body:     body,
 		Response: response,
 	}
-	return result, nil
+	  if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+    return result, fmt.Errorf("HTTP request failed with status %s", response.Status)
+  }
+return result, nil
 }
 
 // MustDo submits the request and returns a [Response]. Panics on error.
